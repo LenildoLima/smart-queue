@@ -26,7 +26,7 @@ const App = () => (
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/dashboard" element={<ProtectedRoute><ComingSoon title="Dashboard — Em breve" /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendar" element={<ProtectedRoute><ComingSoon title="Agendamento — Em breve" /></ProtectedRoute>} />
             <Route path="/fila" element={<ProtectedRoute><ComingSoon title="Fila — Em breve" /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><ComingSoon title="Perfil — Em breve" /></ProtectedRoute>} />
