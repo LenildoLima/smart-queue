@@ -108,8 +108,8 @@ const Cadastro = () => {
       const userId = authData.user?.id;
       if (!userId) throw new Error('Erro ao criar conta');
 
-      // Aguarda 1 segundo para o trigger criar o perfil
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Aguarda 1.5 segundos para o trigger criar o perfil
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Upload avatar
       let avatarUrl: string | null = null;
