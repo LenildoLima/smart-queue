@@ -96,7 +96,11 @@ const Cadastro = () => {
         password: senha,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { nome_completo: nome.trim() },
+          data: {
+            nome_completo: nome.trim(),
+            full_name: nome.trim(),
+            display_name: nome.trim(),
+          },
         },
       });
       if (authError) throw authError;
@@ -104,7 +108,7 @@ const Cadastro = () => {
       const userId = authData.user?.id;
       if (!userId) throw new Error('Erro ao criar conta');
 
-      // Upload avatar and get public URL
+      // 1. Upload avatar
       let avatarUrl: string | null = null;
       if (avatar) {
         const fileExt = avatar.name.split('.').pop();
@@ -112,6 +116,8 @@ const Cadastro = () => {
         const { error: uploadError } = await supabase.storage
           .from('avatares')
           .upload(filePath, avatar, { upsert: true });
+
+        // 2. Get public URL
         if (!uploadError) {
           const { data: urlData } = supabase.storage
             .from('avatares')
@@ -120,7 +126,7 @@ const Cadastro = () => {
         }
       }
 
-      // Update profile
+      // 3. Update profile
       await supabase.from('perfis').update({
         nome_completo: nome.trim(),
         cpf: cpf.replace(/\D/g, '') || null,
