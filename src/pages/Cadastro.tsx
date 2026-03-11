@@ -108,8 +108,8 @@ const Cadastro = () => {
       const userId = authData.user?.id;
       if (!userId) throw new Error('Erro ao criar conta');
 
-      // Aguarda 1 segundo para o trigger criar o perfil
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Aguarda 1.5 segundos para o trigger criar o perfil
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Upload avatar
       let avatarUrl: string | null = null;
@@ -138,7 +138,11 @@ const Cadastro = () => {
         url_avatar: avatarUrl,
       }).eq('id', userId);
 
-      if (updateError) console.error('Erro ao atualizar perfil:', updateError);
+      if (updateError) {
+        console.error('Erro detalhado ao atualizar perfil:', updateError);
+      } else {
+        console.log('Perfil atualizado com sucesso!');
+      }
 
       toast({ title: 'Bem-vindo ao SmartQueue!', description: 'Sua conta foi criada com sucesso.' });
       navigate('/dashboard');

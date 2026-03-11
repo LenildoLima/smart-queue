@@ -14,8 +14,8 @@ export const UserAvatar = ({ src, name = '', size = 40 }: UserAvatarProps) => {
 
   return (
     <div
-      className="flex items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold overflow-hidden"
-      style={{ width: size, height: size, fontSize: size * 0.4 }}
+      className="flex items-center justify-center rounded-full font-semibold overflow-hidden text-white"
+      style={{ width: size, height: size, fontSize: size * 0.4, backgroundColor: src ? undefined : '#2563EB' }}
     >
       {src ? (
         <img src={src} alt={name} className="h-full w-full object-cover" />
