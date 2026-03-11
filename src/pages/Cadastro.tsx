@@ -108,7 +108,10 @@ const Cadastro = () => {
       const userId = authData.user?.id;
       if (!userId) throw new Error('Erro ao criar conta');
 
-      // 1. Upload avatar
+      // Aguarda 1 segundo para o trigger criar o perfil
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Upload avatar
       let avatarUrl: string | null = null;
       if (avatar) {
         const fileExt = avatar.name.split('.').pop();
@@ -117,7 +120,6 @@ const Cadastro = () => {
           .from('avatares')
           .upload(filePath, avatar, { upsert: true });
 
-        // 2. Get public URL
         if (!uploadError) {
           const { data: urlData } = supabase.storage
             .from('avatares')
@@ -126,15 +128,17 @@ const Cadastro = () => {
         }
       }
 
-      // 3. Update profile
-      await supabase.from('perfis').update({
+      // Atualiza o perfil com todos os dados
+      const { error: updateError } = await supabase.from('perfis').update({
         nome_completo: nome.trim(),
         cpf: cpf.replace(/\D/g, '') || null,
         telefone: telefone.replace(/\D/g, '') || null,
         data_nascimento: nascimento || null,
         grupo_prioridade: prioridade,
-        ...(avatarUrl && { url_avatar: avatarUrl }),
+        url_avatar: avatarUrl,
       }).eq('id', userId);
+
+      if (updateError) console.error('Erro ao atualizar perfil:', updateError);
 
       toast({ title: 'Bem-vindo ao SmartQueue!', description: 'Sua conta foi criada com sucesso.' });
       navigate('/dashboard');
