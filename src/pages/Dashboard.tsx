@@ -254,6 +254,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* History */}
+        <AppointmentHistory />
       </main>
 
       <BottomNav />
