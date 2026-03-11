@@ -94,27 +94,40 @@ const Cadastro = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password: senha,
-        options: { emailRedirectTo: window.location.origin },
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { nome_completo: nome.trim() },
+        },
       });
       if (authError) throw authError;
 
       const userId = authData.user?.id;
       if (!userId) throw new Error('Erro ao criar conta');
 
-      // Upload avatar
+      // Upload avatar and get public URL
+      let avatarUrl: string | null = null;
       if (avatar) {
-        await supabase.storage
+        const fileExt = avatar.name.split('.').pop();
+        const filePath = `${userId}/avatar.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
           .from('avatares')
-          .upload(`${userId}/avatar.jpg`, avatar, { upsert: true });
+          .upload(filePath, avatar, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('avatares')
+            .getPublicUrl(filePath);
+          avatarUrl = urlData.publicUrl;
+        }
       }
 
       // Update profile
       await supabase.from('perfis').update({
         nome_completo: nome.trim(),
-        cpf: cpf.replace(/\D/g, ''),
-        telefone: telefone.replace(/\D/g, ''),
+        cpf: cpf.replace(/\D/g, '') || null,
+        telefone: telefone.replace(/\D/g, '') || null,
         data_nascimento: nascimento || null,
         grupo_prioridade: prioridade,
+        ...(avatarUrl && { url_avatar: avatarUrl }),
       }).eq('id', userId);
 
       toast({ title: 'Bem-vindo ao SmartQueue!', description: 'Sua conta foi criada com sucesso.' });
