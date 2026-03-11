@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { AppointmentHistory } from '@/components/AppointmentHistory';
 import { CalendarPlus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -253,6 +254,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* History */}
+        <AppointmentHistory />
       </main>
 
       <BottomNav />
