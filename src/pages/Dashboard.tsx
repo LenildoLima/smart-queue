@@ -37,29 +37,33 @@ const Dashboard = () => {
   const [totalFila, setTotalFila] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Fetch profile + active appointment
+  // Fetch profile + active appointment using getUser() to ensure auth is ready
   useEffect(() => {
-    if (!user) return;
-
     const fetchData = async () => {
       setLoading(true);
 
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        setLoading(false);
+        return;
+      }
+
       const [perfilRes, agendamentoRes] = await Promise.all([
-        supabase.from('perfis').select('*').eq('id', user.id).single(),
+        supabase.from('perfis').select('*').eq('id', authUser.id).maybeSingle(),
         supabase
           .from('agendamentos')
           .select('*')
-          .eq('usuario_id', user.id)
+          .eq('usuario_id', authUser.id)
           .in('status', ['agendado', 'aguardando', 'em_atendimento'])
           .order('data_agendamento', { ascending: true })
           .limit(1)
           .maybeSingle(),
       ]);
 
+      if (perfilRes.error) console.error('Erro ao buscar perfil:', perfilRes.error);
       if (perfilRes.data) setPerfil(perfilRes.data);
       if (agendamentoRes.data) {
         setAgendamento(agendamentoRes.data);
-        // fetch queue position
         await fetchFila(agendamentoRes.data);
       }
 
@@ -67,7 +71,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, []);
 
   const fetchFila = async (ag: Agendamento) => {
     const [filaRes, totalRes] = await Promise.all([

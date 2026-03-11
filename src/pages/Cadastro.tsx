@@ -138,7 +138,11 @@ const Cadastro = () => {
         url_avatar: avatarUrl,
       }).eq('id', userId);
 
-      if (updateError) console.error('Erro ao atualizar perfil:', updateError);
+      if (updateError) {
+        console.error('Erro detalhado ao atualizar perfil:', updateError);
+      } else {
+        console.log('Perfil atualizado com sucesso!');
+      }
 
       toast({ title: 'Bem-vindo ao SmartQueue!', description: 'Sua conta foi criada com sucesso.' });
       navigate('/dashboard');
