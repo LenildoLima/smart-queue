@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AppointmentHistory } from '@/components/AppointmentHistory';
-import { CalendarPlus, X } from 'lucide-react';
+import { CalendarPlus, X, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [fila, setFila] = useState<FilaRow | null>(null);
   const [totalFila, setTotalFila] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch profile + active appointment using getUser() to ensure auth is ready
   useEffect(() => {
@@ -59,6 +60,10 @@ const Dashboard = () => {
           .limit(1)
           .maybeSingle(),
       ]);
+
+      if (perfilRes.data?.perfil === 'administrador' || perfilRes.data?.perfil === 'super_administrador') {
+        setIsAdmin(true);
+      }
 
       if (perfilRes.error) console.error('Erro ao buscar perfil:', perfilRes.error);
       if (perfilRes.data) setPerfil(perfilRes.data);
@@ -185,9 +190,17 @@ const Dashboard = () => {
       <main className="container max-w-2xl py-6 space-y-5 animate-fade-in">
         {/* Welcome Card */}
         <Card>
-          <CardContent className="p-5">
-            <h2 className="text-xl font-bold text-foreground">Olá, {nome}! 👋</h2>
-            <p className="text-sm text-muted-foreground capitalize mt-1">{hoje}</p>
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Olá, {nome}! 👋</h2>
+              <p className="text-sm text-muted-foreground capitalize mt-1">{hoje}</p>
+            </div>
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Shield size={16} className="mr-1" />
+                Painel Admin
+              </Button>
+            )}
           </CardContent>
         </Card>
 
