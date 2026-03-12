@@ -31,7 +31,7 @@ const App = () => (
             <Route path="/agendar" element={<ProtectedRoute><ComingSoon title="Agendamento — Em breve" /></ProtectedRoute>} />
             <Route path="/fila" element={<ProtectedRoute><ComingSoon title="Fila — Em breve" /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><ComingSoon title="Perfil — Em breve" /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><ComingSoon title="Admin — Em breve" /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
