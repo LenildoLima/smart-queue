@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AppointmentHistory } from '@/components/AppointmentHistory';
-import { CalendarPlus, X } from 'lucide-react';
+import { CalendarPlus, X, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
