@@ -60,6 +60,10 @@ const Dashboard = () => {
           .maybeSingle(),
       ]);
 
+      if (perfilRes.data?.perfil === 'administrador' || perfilRes.data?.perfil === 'super_administrador') {
+        setIsAdmin(true);
+      }
+
       if (perfilRes.error) console.error('Erro ao buscar perfil:', perfilRes.error);
       if (perfilRes.data) setPerfil(perfilRes.data);
       if (agendamentoRes.data) {
