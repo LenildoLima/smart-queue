@@ -36,6 +36,7 @@ const Dashboard = () => {
   const [fila, setFila] = useState<FilaRow | null>(null);
   const [totalFila, setTotalFila] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch profile + active appointment using getUser() to ensure auth is ready
   useEffect(() => {
