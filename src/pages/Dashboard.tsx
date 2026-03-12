@@ -190,9 +190,17 @@ const Dashboard = () => {
       <main className="container max-w-2xl py-6 space-y-5 animate-fade-in">
         {/* Welcome Card */}
         <Card>
-          <CardContent className="p-5">
-            <h2 className="text-xl font-bold text-foreground">Olá, {nome}! 👋</h2>
-            <p className="text-sm text-muted-foreground capitalize mt-1">{hoje}</p>
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Olá, {nome}! 👋</h2>
+              <p className="text-sm text-muted-foreground capitalize mt-1">{hoje}</p>
+            </div>
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Shield size={16} className="mr-1" />
+                Painel Admin
+              </Button>
+            )}
           </CardContent>
         </Card>
 
