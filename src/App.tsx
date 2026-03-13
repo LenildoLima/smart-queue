@@ -14,6 +14,8 @@ import Admin from "./pages/Admin";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
 
+import Agendar from "./pages/Agendar";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,7 +31,7 @@ const App = () => (
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/agendar" element={<ProtectedRoute><ComingSoon title="Agendamento — Em breve" /></ProtectedRoute>} />
+            <Route path="/agendar" element={<ProtectedRoute><Agendar /></ProtectedRoute>} />
             <Route path="/fila" element={<ProtectedRoute><ComingSoon title="Fila — Em breve" /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
