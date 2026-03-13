@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardHeader } from '@/components/DashboardHeader';
-import { BottomNav } from '@/components/BottomNav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,30 +42,37 @@ const Dashboard = () => {
     const fetchData = async () => {
       setLoading(true);
 
+      // ensure auth is ready
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) {
         setLoading(false);
         return;
       }
 
-      const [perfilRes, agendamentoRes] = await Promise.all([
-        supabase.from('perfis').select('*').eq('id', authUser.id).maybeSingle(),
-        supabase
-          .from('agendamentos')
-          .select('*')
-          .eq('usuario_id', authUser.id)
-          .in('status', ['agendado', 'aguardando', 'em_atendimento'])
-          .order('data_agendamento', { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-      ]);
+      // only select the fields we need (nome_completo, url_avatar and perfil for admin check)
+      const { data: perfilData, error: perfilError } = await supabase
+        .from('perfis')
+        .select('nome_completo, url_avatar, perfil')
+        .eq('id', authUser.id)
+        .single();
 
-      if (perfilRes.data?.perfil === 'administrador' || perfilRes.data?.perfil === 'super_administrador') {
-        setIsAdmin(true);
+      if (perfilError) console.error('Erro ao buscar perfil:', perfilError);
+      if (perfilData) {
+        setPerfil(perfilData);
+        if (perfilData.perfil === 'administrador' || perfilData.perfil === 'super_administrador') {
+          setIsAdmin(true);
+        }
       }
 
-      if (perfilRes.error) console.error('Erro ao buscar perfil:', perfilRes.error);
-      if (perfilRes.data) setPerfil(perfilRes.data);
+      const agendamentoRes = await supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('usuario_id', authUser.id)
+        .in('status', ['agendado', 'aguardando', 'em_atendimento'])
+        .order('data_agendamento', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
       if (agendamentoRes.data) {
         setAgendamento(agendamentoRes.data);
         await fetchFila(agendamentoRes.data);
@@ -179,7 +185,8 @@ const Dashboard = () => {
   }
 
   const hoje = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR });
-  const nome = perfil?.nome_completo?.split(' ')[0] || 'Usuário';
+  // use the full nome_completo, fallback to a generic label if not available
+  const nome = perfil?.nome_completo || 'Usuário';
   const progressValue = fila && totalFila > 0 ? Math.max(0, ((totalFila - fila.posicao + 1) / totalFila) * 100) : 0;
   const status = agendamento ? statusConfig[agendamento.status] || statusConfig.agendado : null;
 
@@ -276,7 +283,6 @@ const Dashboard = () => {
         <AppointmentHistory />
       </main>
 
-      <BottomNav />
     </div>
   );
 };

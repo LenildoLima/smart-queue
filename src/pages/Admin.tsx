@@ -9,32 +9,59 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   LogOut,
   CalendarCheck,
+  PhoneCall,
+  Shield,
+  Users,
   Clock,
   CheckCircle2,
   XCircle,
-  PhoneCall,
-  UserX,
-  Shield,
+  Search,
+  Edit2,
+  Ban,
+  CheckCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Tables } from '@/integrations/supabase/types';
 
-type Perfil = Tables<'perfis'>;
+type Perfil = Tables<'perfis'> & { ativo?: boolean };
 
 interface FilaItem {
   id: string;
+  agendamento_id: string;
+  unidade_id: string;
   posicao: number;
+  criado_em: string;
   chamado_em: string | null;
   atendimento_inicio: string | null;
   atendimento_fim: string | null;
   numero_guiche: number | null;
-  criado_em: string;
-  unidade_id: string;
-  agendamento_id: string;
   agendamento: {
     id: string;
     numero_senha: string | null;
@@ -64,11 +91,21 @@ const Admin = () => {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [unidadeId, setUnidadeId] = useState<string | null>(null);
   const [resumo, setResumo] = useState({ agendados: 0, aguardando: 0, concluidos: 0, cancelados: 0 });
   const [fila, setFila] = useState<FilaItem[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Gestão de Usuários states
+  const [usuarios, setUsuarios] = useState<Perfil[]>([]);
+  const [filtroNome, setFiltroNome] = useState('');
+  const [filtroPerfil, setFiltroPerfil] = useState('Todos');
+  const [filtroStatus, setFiltroStatus] = useState('Todos');
+  const [editingUser, setEditingUser] = useState<Perfil | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<Perfil>>({});
 
   // Check admin access and load initial data
   useEffect(() => {
@@ -90,20 +127,19 @@ const Admin = () => {
       setPerfil(perfilData);
 
       // Get admin's unit
-      const { data: adminUnidade } = await supabase
+      const { data: vinculo, error: vinculoError } = await supabase
         .from('administradores_unidades')
         .select('unidade_id')
         .eq('usuario_id', authUser.id)
-        .limit(1)
-        .maybeSingle();
+        .single();
 
-      if (!adminUnidade) {
-        toast({ title: 'Sem unidade', description: 'Você não está associado a nenhuma unidade.', variant: 'destructive' });
+      if (vinculoError || !vinculo) {
+        setErro('Sem unidade');
         setLoading(false);
         return;
       }
 
-      setUnidadeId(adminUnidade.unidade_id);
+      setUnidadeId(vinculo.unidade_id);
       setLoading(false);
     };
     init();
@@ -115,7 +151,7 @@ const Admin = () => {
 
     const hoje = format(new Date(), 'yyyy-MM-dd');
 
-    const [agendadosRes, aguardandoRes, concluidosRes, canceladosRes, filaRes] = await Promise.all([
+    const [agendadosRes, aguardandoRes, concluidosRes, canceladosRes, filaRes, usuariosRes] = await Promise.all([
       supabase.from('agendamentos').select('id', { count: 'exact', head: true })
         .eq('unidade_id', unidadeId).eq('data_agendamento', hoje).eq('status', 'agendado'),
       supabase.from('agendamentos').select('id', { count: 'exact', head: true })
@@ -130,6 +166,7 @@ const Admin = () => {
         .eq('unidade_id', unidadeId)
         .is('atendimento_fim', null)
         .order('posicao', { ascending: true }),
+      supabase.from('perfis').select('*').order('nome_completo', { ascending: true }),
     ]);
 
     setResumo({
@@ -141,6 +178,10 @@ const Admin = () => {
 
     if (filaRes.data) {
       setFila(filaRes.data as unknown as FilaItem[]);
+    }
+    
+    if (usuariosRes.data) {
+      setUsuarios(usuariosRes.data as Perfil[]);
     }
   }, [unidadeId]);
 
@@ -156,51 +197,58 @@ const Admin = () => {
       .channel('admin-fila-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fila', filter: `unidade_id=eq.${unidadeId}` }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos', filter: `unidade_id=eq.${unidadeId}` }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'perfis' }, () => fetchData())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [unidadeId, fetchData]);
 
   const handleChamarProximo = async () => {
-    const proximo = fila.find(f => f.agendamento?.status === 'aguardando');
-    if (!proximo) {
+    if (!unidadeId) return;
+
+    // Buscar próximo da fila (ordenado por posição, sem atendimento_fim)
+    const { data: proximo, error: filaError } = await supabase
+      .from('fila')
+      .select('*')
+      .eq('unidade_id', unidadeId)
+      .is('atendimento_fim', null)
+      .order('posicao', { ascending: true })
+      .limit(1)
+      .single();
+
+    if (filaError || !proximo) {
       toast({ title: 'Fila vazia', description: 'Não há ninguém aguardando.' });
       return;
     }
-    setActionLoading(proximo.id);
-    const { error } = await supabase
+
+    // Atualizar agendamento para em atendimento
+    const { error: updateError } = await supabase
       .from('agendamentos')
-      .update({ status: 'em_atendimento' })
+      .update({
+        status: 'em_atendimento',
+        atualizado_em: new Date().toISOString(),
+      })
       .eq('id', proximo.agendamento_id);
 
-    if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    else {
-      await supabase.from('fila').update({ chamado_em: new Date().toISOString(), atendimento_inicio: new Date().toISOString() }).eq('id', proximo.id);
-      toast({ title: 'Chamado!', description: `Senha ${proximo.agendamento?.numero_senha} chamada.` });
+    if (updateError) {
+      toast({ title: 'Erro', description: updateError.message, variant: 'destructive' });
+      return;
     }
-    setActionLoading(null);
-  };
 
-  const handleConcluir = async (item: FilaItem) => {
-    setActionLoading(item.id);
-    const { error } = await supabase
-      .from('agendamentos')
-      .update({ status: 'concluido' })
-      .eq('id', item.agendamento_id);
-    if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    else toast({ title: 'Concluído', description: `Atendimento da senha ${item.agendamento?.numero_senha} finalizado.` });
-    setActionLoading(null);
-  };
+    // Atualizar fila com chamado_em e atendimento_inicio
+    const { error: filaUpdateError } = await supabase
+      .from('fila')
+      .update({
+        chamado_em: new Date().toISOString(),
+        atendimento_inicio: new Date().toISOString(),
+      })
+      .eq('id', proximo.id);
 
-  const handleNaoCompareceu = async (item: FilaItem) => {
-    setActionLoading(item.id);
-    const { error } = await supabase
-      .from('agendamentos')
-      .update({ status: 'nao_compareceu' })
-      .eq('id', item.agendamento_id);
-    if (error) toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-    else toast({ title: 'Não compareceu', description: `Senha ${item.agendamento?.numero_senha} marcada como não compareceu.` });
-    setActionLoading(null);
+    if (filaUpdateError) {
+      toast({ title: 'Erro', description: filaUpdateError.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Chamado!', description: `Paciente chamado.` });
+    }
   };
 
   const handleSignOut = async () => {
@@ -208,12 +256,19 @@ const Admin = () => {
     navigate('/login');
   };
 
-  const getTempoEspera = (criadoEm: string) => {
-    const diff = Math.floor((Date.now() - new Date(criadoEm).getTime()) / 60000);
-    if (diff < 1) return '<1 min';
-    if (diff < 60) return `${diff} min`;
-    return `${Math.floor(diff / 60)}h ${diff % 60}min`;
-  };
+  if (erro) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
+        <div className="text-center space-y-3">
+          <h2 className="text-2xl font-bold text-foreground">Erro de acesso</h2>
+          <p className="text-muted-foreground">{erro}</p>
+          <p className="text-sm text-muted-foreground">
+            Contacte o administrador do sistema para ser associado a uma unidade.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -222,6 +277,61 @@ const Admin = () => {
       </div>
     );
   }
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+    
+    setActionLoading('save_user');
+    const { error } = await supabase
+      .from('perfis')
+      .update(editFormData)
+      .eq('id', editingUser.id);
+      
+    setActionLoading(null);
+    
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    
+    toast({ title: 'Sucesso', description: 'Usuário atualizado com sucesso.' });
+    setIsEditDialogOpen(false);
+    fetchData();
+  };
+
+  const handleToggleUserStatus = async (id: string, isAtivo: boolean) => {
+    setActionLoading(`toggle_${id}`);
+    const newStatus = !isAtivo;
+    const { error } = await supabase
+      .from('perfis')
+      .update({ ativo: newStatus } as any)
+      .eq('id', id);
+      
+    setActionLoading(null);
+    
+    if (error) {
+      toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' });
+      return;
+    }
+    
+    toast({ title: 'Status atualizado', description: `Usuário ${newStatus ? 'reativado' : 'desativado'} com sucesso.` });
+    fetchData();
+  };
+
+  const usuariosFilter = usuarios.filter((u) => {
+    const isAtivo = u.ativo !== false;
+    
+    if (filtroNome && !u.nome_completo?.toLowerCase().includes(filtroNome.toLowerCase())) {
+      return false;
+    }
+    if (filtroPerfil !== 'Todos' && u.perfil !== filtroPerfil) {
+      return false;
+    }
+    if (filtroStatus === 'Ativos' && !isAtivo) return false;
+    if (filtroStatus === 'Inativos' && isAtivo) return false;
+    
+    return true;
+  });
 
   const hoje = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR });
 
@@ -293,86 +403,253 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             {fila.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                <Clock size={40} className="mx-auto mb-2 opacity-50" />
-                <p className="font-medium">Fila vazia</p>
-                <p className="text-sm">Nenhum paciente na fila no momento.</p>
+              <div className="text-center py-8 text-muted-foreground">
+                <Users size={48} className="mx-auto mb-2 opacity-50" />
+                <p>Fila vazia</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {fila.map((item) => {
-                  const ag = item.agendamento;
-                  const prio = prioridadeConfig[ag?.grupo_prioridade || 'normal'] || prioridadeConfig.normal;
-                  const isAtendimento = ag?.status === 'em_atendimento';
-
-                  return (
-                    <div
-                      key={item.id}
-                      className={`rounded-lg border p-4 transition-colors ${
-                        isAtendimento
-                          ? 'border-destructive/40 bg-destructive/5'
-                          : 'border-border'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between flex-wrap gap-3">
-                        {/* Left: info */}
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <span className="text-2xl font-extrabold text-primary tracking-wider min-w-[70px]">
-                            {ag?.numero_senha || '---'}
-                          </span>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-foreground">
-                              {ag?.perfil?.nome_completo || 'Sem nome'}
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs text-muted-foreground">
-                                {ag?.tipo_atendimento?.nome || 'Atendimento'}
-                              </span>
-                              <Badge className={prio.className + ' text-xs'}>{prio.label}</Badge>
-                              {isAtendimento && (
-                                <Badge className="bg-destructive text-destructive-foreground text-xs">Em atendimento</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right: time + actions */}
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm text-muted-foreground font-mono">
-                            ⏱ {getTempoEspera(item.criado_em)}
-                          </span>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-success text-success hover:bg-success hover:text-success-foreground"
-                              disabled={actionLoading === item.id}
-                              onClick={() => handleConcluir(item)}
-                            >
-                              <CheckCircle2 size={14} className="mr-1" />
-                              Concluir
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                              disabled={actionLoading === item.id}
-                              onClick={() => handleNaoCompareceu(item)}
-                            >
-                              <UserX size={14} className="mr-1" />
-                              Não veio
-                            </Button>
-                          </div>
-                        </div>
+              <div className="space-y-2">
+                {fila.map((item, index) => (
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                        {item.posicao}
+                      </Badge>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {item.agendamento?.perfil?.nome_completo || `Paciente ${item.id.slice(0, 8)}`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.agendamento?.tipo_atendimento?.nome || 'Atendimento'}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
+                    <Badge variant={item.chamado_em ? 'default' : 'secondary'}>
+                      {item.chamado_em ? 'Chamado' : 'Aguardando'}
+                    </Badge>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Gestão de Usuários */}
+        <Card>
+          <CardHeader className="pb-3 border-b border-border/50">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users size={20} className="text-primary" />
+                  Gestão de Usuários
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Gerencie os perfis de acesso e status no sistema.</p>
+              </div>
+              
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                <div className="relative w-full sm:w-64">
+                  <Search size={16} className="absolute left-2.5 top-2.5 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar por nome..." 
+                    className="pl-9 bg-background"
+                    value={filtroNome}
+                    onChange={(e) => setFiltroNome(e.target.value)}
+                  />
+                </div>
+                
+                <Select value={filtroPerfil} onValueChange={setFiltroPerfil}>
+                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                    <SelectValue placeholder="Perfil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos Perfis</SelectItem>
+                    <SelectItem value="usuario">Usuários</SelectItem>
+                    <SelectItem value="administrador">Administradores</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos Status</SelectItem>
+                    <SelectItem value="Ativos">Ativos</SelectItem>
+                    <SelectItem value="Inativos">Inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="w-[250px] pl-6">Usuário</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Prioridade</TableHead>
+                    <TableHead>Perfil</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right pr-6">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {usuariosFilter.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        Nenhum usuário encontrado com os filtros atuais.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    usuariosFilter.map((u) => {
+                      const isAtivo = u.ativo !== false;
+                      return (
+                        <TableRow key={u.id} className={!isAtivo ? "opacity-60 bg-muted/20" : ""}>
+                          <TableCell className="pl-6">
+                            <div className="flex items-center gap-3">
+                              <UserAvatar src={u.url_avatar} name={u.nome_completo || ''} size={36} />
+                              <div className="flex flex-col">
+                                <span className="font-medium truncate max-w-[180px]">{u.nome_completo || 'Sem nome'}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col text-sm">
+                              <span className="text-muted-foreground">{u.telefone || '-'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {u.grupo_prioridade ? (
+                              <Badge variant="outline" className={prioridadeConfig[u.grupo_prioridade]?.className || ''}>
+                                {prioridadeConfig[u.grupo_prioridade]?.label || u.grupo_prioridade}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className={`capitalize ${u.perfil === 'administrador' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100 hover:text-orange-800' : 'bg-blue-100 text-blue-800 hover:bg-blue-100 hover:text-blue-800'}`}>
+                              {u.perfil || 'usuario'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {isAtivo ? (
+                              <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Ativo</Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">Inativo</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-8 w-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                onClick={() => {
+                                  setEditingUser(u);
+                                  setEditFormData({
+                                    nome_completo: u.nome_completo,
+                                    telefone: u.telefone,
+                                    grupo_prioridade: u.grupo_prioridade,
+                                    perfil: u.perfil
+                                  });
+                                  setIsEditDialogOpen(true);
+                                }}
+                                title="Editar usuário"
+                              >
+                                <Edit2 size={14} />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className={`h-8 gap-1 ${isAtivo ? 'text-red-600 border-red-200 hover:bg-red-50' : 'text-green-600 border-green-200 hover:bg-green-50'}`}
+                                onClick={() => handleToggleUserStatus(u.id, isAtivo)}
+                                disabled={actionLoading === `toggle_${u.id}`}
+                              >
+                                {isAtivo ? (
+                                  <><Ban size={14} /> Desativar</>
+                                ) : (
+                                  <><CheckCircle size={14} /> Reativar</>
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </main>
+
+      {/* Modal Edição de Usuário */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Nome Completo</label>
+              <Input 
+                value={editFormData.nome_completo || ''} 
+                onChange={e => setEditFormData({...editFormData, nome_completo: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Telefone</label>
+              <Input 
+                value={editFormData.telefone || ''} 
+                onChange={e => setEditFormData({...editFormData, telefone: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Grupo de Prioridade</label>
+              <Select 
+                value={editFormData.grupo_prioridade || 'normal'} 
+                onValueChange={(v) => setEditFormData({...editFormData, grupo_prioridade: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="idoso">Idoso (60+)</SelectItem>
+                  <SelectItem value="gestante">Gestante</SelectItem>
+                  <SelectItem value="deficiente">PCD</SelectItem>
+                  <SelectItem value="lactante">Lactante</SelectItem>
+                  <SelectItem value="obeso">Obeso</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Perfil de Acesso</label>
+              <Select 
+                value={editFormData.perfil || 'usuario'} 
+                onValueChange={(v) => setEditFormData({...editFormData, perfil: v as any})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="usuario">Usuário</SelectItem>
+                  <SelectItem value="administrador">Administrador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveUser} disabled={actionLoading === 'save_user'}>
+              {actionLoading === 'save_user' ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

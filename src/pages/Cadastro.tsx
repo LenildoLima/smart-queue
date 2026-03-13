@@ -128,20 +128,20 @@ const Cadastro = () => {
         }
       }
 
-      // Atualiza o perfil com todos os dados
+      // Atualiza o perfil com todos os dados (ordem exata conforme especificado)
       const { error: updateError } = await supabase.from('perfis').update({
         nome_completo: nome.trim(),
         cpf: cpf.replace(/\D/g, '') || null,
         telefone: telefone.replace(/\D/g, '') || null,
         data_nascimento: nascimento || null,
         grupo_prioridade: prioridade,
-        url_avatar: avatarUrl,
+        url_avatar: avatarUrl || null,
       }).eq('id', userId);
 
       if (updateError) {
-        console.error('Erro detalhado ao atualizar perfil:', updateError);
+        console.error('Erro ao atualizar perfil:', updateError);
       } else {
-        console.log('Perfil atualizado com sucesso!');
+        console.log('Perfil atualizado:', { nome, cpf, telefone });
       }
 
       toast({ title: 'Bem-vindo ao SmartQueue!', description: 'Sua conta foi criada com sucesso.' });
