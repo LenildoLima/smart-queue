@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarPlus, ListOrdered, User, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, CalendarPlus, ListOrdered, User, LogOut, Shield, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,9 +41,13 @@ export const Navigation = () => {
     navigate('/login');
   };
 
-  // build the navigation items, adding admin link when appropriate
-  const items = perfil?.perfil === 'administrador'
-    ? [...baseItems, { to: '/admin', label: 'Admin', icon: Shield }]
+  // build the navigation items based on profile
+  const items = perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador'
+    ? [
+        { to: '/admin', label: 'Admin', icon: Shield },
+        { to: '/relatorios', label: 'Relatórios', icon: BarChart2 },
+        { to: '/perfil', label: 'Perfil', icon: User }
+      ]
     : baseItems;
 
   return (

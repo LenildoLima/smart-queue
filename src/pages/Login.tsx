@@ -21,12 +21,23 @@ const Login = () => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
     if (error) {
       toast({ title: 'Erro ao entrar', description: error.message, variant: 'destructive' });
-    } else {
-      navigate('/dashboard');
+    } else if (authData.user) {
+      // Get the user's profile to check their role
+      const { data: profileData } = await supabase
+        .from('perfis')
+        .select('perfil')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileData?.perfil === 'administrador') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 

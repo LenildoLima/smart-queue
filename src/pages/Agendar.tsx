@@ -224,7 +224,7 @@ export default function Agendar() {
   if (etapa === 5 && senhaGerada) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-0">
-        <DashboardHeader nomeCompleto={perfil?.nome_completo || ''} avatarUrl={perfil?.url_avatar} />
+        <DashboardHeader isAdmin={perfil?.perfil === 'administrador'} />
         <main className="container max-w-2xl py-12 space-y-8 animate-fade-in text-center">
           <div className="mx-auto w-24 h-24 bg-success/10 rounded-full flex items-center justify-center mb-6">
             <CheckCircle2 className="w-12 h-12 text-success" />
@@ -254,7 +254,7 @@ export default function Agendar() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0 flex flex-col">
-      <DashboardHeader nomeCompleto={perfil?.nome_completo || ''} avatarUrl={perfil?.url_avatar} />
+      <DashboardHeader isAdmin={perfil?.perfil === 'administrador'} />
 
       <main className="container max-w-3xl py-6 flex-1 flex flex-col animate-fade-in">
         <div className="mb-8">

@@ -1,17 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
-import { SmartQueueLogo } from '@/components/SmartQueueLogo';
-import { UserAvatar } from '@/components/UserAvatar';
+import { LogOut, Shield } from 'lucide-react';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardHeaderProps {
-  nomeCompleto: string;
-  avatarUrl?: string | null;
+  isAdmin?: boolean;
 }
 
-export const DashboardHeader = ({ nomeCompleto, avatarUrl }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ isAdmin }: DashboardHeaderProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -23,11 +21,16 @@ export const DashboardHeader = ({ nomeCompleto, avatarUrl }: DashboardHeaderProp
   return (
     <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between">
-        <SmartQueueLogo size="sm" />
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
+              <Shield size={12} className="mr-1" />
+              Painel Admin
+            </Badge>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <NotificationPanel />
-          <span className="hidden sm:block text-sm font-medium text-foreground">{nomeCompleto}</span>
-          <UserAvatar src={avatarUrl} name={nomeCompleto} size={36} />
           <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair">
             <LogOut size={18} />
           </Button>

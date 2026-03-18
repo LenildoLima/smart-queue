@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { SmartQueueLogo } from '@/components/SmartQueueLogo';
 import { UserAvatar } from '@/components/UserAvatar';
+import { NotificationPanel } from '@/components/NotificationPanel';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,6 +76,17 @@ interface FilaItem {
   };
 }
 
+interface AgendamentoItem {
+  id: string;
+  numero_senha: string | null;
+  status: string;
+  grupo_prioridade: string;
+  data_agendamento: string;
+  hora_agendamento: string;
+  perfil: { nome_completo: string; url_avatar: string | null; telefone: string | null } | null;
+  tipo_atendimento: { nome: string } | null;
+}
+
 const prioridadeConfig: Record<string, { label: string; className: string }> = {
   normal: { label: 'Normal', className: 'bg-muted text-muted-foreground' },
   idoso: { label: 'Idoso', className: 'bg-amber-100 text-amber-800' },
@@ -84,6 +95,20 @@ const prioridadeConfig: Record<string, { label: string; className: string }> = {
   lactante: { label: 'Lactante', className: 'bg-rose-100 text-rose-800' },
   obeso: { label: 'Obeso', className: 'bg-orange-100 text-orange-800' },
 };
+
+const statusBadgeConfig: Record<string, { label: string; className: string }> = {
+  agendado: { label: 'Agendado', className: 'bg-blue-100 text-blue-800 hover:bg-blue-200' },
+  aguardando: { label: 'Aguardando', className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' },
+  em_atendimento: { label: 'Em Atendimento', className: 'bg-purple-100 text-purple-800 hover:bg-purple-200' },
+  concluido: { label: 'Concluído', className: 'bg-green-100 text-green-800 hover:bg-green-200' },
+  cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-800 hover:bg-red-200' },
+  nao_compareceu: { label: 'Não Compareceu', className: 'bg-orange-100 text-orange-800 hover:bg-orange-200' }
+};
+
+const isDataPassada = (data: string) => {
+  const hoje = new Date().toISOString().split('T')[0]
+  return data < hoje
+}
 
 const Admin = () => {
   const { user, signOut } = useAuth();
@@ -97,6 +122,12 @@ const Admin = () => {
   const [resumo, setResumo] = useState({ agendados: 0, aguardando: 0, concluidos: 0, cancelados: 0 });
   const [fila, setFila] = useState<FilaItem[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Estados dos Agendamentos
+  const [agendamentos, setAgendamentos] = useState<AgendamentoItem[]>([]);
+  const [filtroAgtData, setFiltroAgtData] = useState('Hoje');
+  const [filtroAgtStatus, setFiltroAgtStatus] = useState('Todos');
+  const [filtroAgtBusca, setFiltroAgtBusca] = useState('');
 
   // Gestão de Usuários states
   const [usuarios, setUsuarios] = useState<Perfil[]>([]);
@@ -140,6 +171,17 @@ const Admin = () => {
       }
 
       setUnidadeId(vinculo.unidade_id);
+      
+      // PARTE 2 - Verificar se existe política que permite admin atualizar status dos agendamentos
+      const { error: rlsError } = await supabase
+        .from('agendamentos')
+        .update({ atualizado_em: new Date().toISOString() })
+        .eq('status', 'xxxxxx_impossible');
+        
+      if (rlsError && (rlsError.code === '42501' || rlsError.message.includes('permission denied') || rlsError.message.includes('RLS'))) {
+        console.warn('Aviso RLS: A política que permite o administrador atualizar o status dos agendamentos da própria unidade pode estar ausente ou configurada incorretamente no Supabase. Verifique as políticas da tabela agendamentos!');
+      }
+
       setLoading(false);
     };
     init();
@@ -149,17 +191,11 @@ const Admin = () => {
   const fetchData = useCallback(async () => {
     if (!unidadeId) return;
 
-    const hoje = format(new Date(), 'yyyy-MM-dd');
+    const hoje = process.env.NODE_ENV === 'development' ? new Date().toISOString().split('T')[0] : format(new Date(), 'yyyy-MM-dd');
 
-    const [agendadosRes, aguardandoRes, concluidosRes, canceladosRes, filaRes, usuariosRes] = await Promise.all([
-      supabase.from('agendamentos').select('id', { count: 'exact', head: true })
-        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje).eq('status', 'agendado'),
-      supabase.from('agendamentos').select('id', { count: 'exact', head: true })
-        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje).eq('status', 'aguardando'),
-      supabase.from('agendamentos').select('id', { count: 'exact', head: true })
-        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje).eq('status', 'concluido'),
-      supabase.from('agendamentos').select('id', { count: 'exact', head: true })
-        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje).eq('status', 'cancelado'),
+    const [todosRes, filaRes, usuariosRes, agendamentosRes] = await Promise.all([
+      supabase.from('agendamentos').select('status')
+        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje),
       supabase
         .from('fila')
         .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id, numero_senha, status, grupo_prioridade, tipo_atendimento_id, usuario_id, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome))')
@@ -167,13 +203,21 @@ const Admin = () => {
         .is('atendimento_fim', null)
         .order('posicao', { ascending: true }),
       supabase.from('perfis').select('*').order('nome_completo', { ascending: true }),
+      supabase
+        .from('agendamentos')
+        .select('id, numero_senha, status, grupo_prioridade, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo, url_avatar, telefone), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome)')
+        .eq('unidade_id', unidadeId)
+        .order('data_agendamento', { ascending: false })
+        .order('hora_agendamento', { ascending: true }),
     ]);
-
+    
+    // Calcular os resumos na memoria baseado em todosRes
+    const stList = todosRes.data || [];
     setResumo({
-      agendados: agendadosRes.count ?? 0,
-      aguardando: aguardandoRes.count ?? 0,
-      concluidos: concluidosRes.count ?? 0,
-      cancelados: canceladosRes.count ?? 0,
+      agendados: stList.filter(s => s.status !== 'cancelado').length,
+      aguardando: stList.filter(s => s.status === 'aguardando').length,
+      concluidos: stList.filter(s => s.status === 'concluido').length,
+      cancelados: stList.filter(s => s.status === 'cancelado').length,
     });
 
     if (filaRes.data) {
@@ -182,6 +226,10 @@ const Admin = () => {
     
     if (usuariosRes.data) {
       setUsuarios(usuariosRes.data as Perfil[]);
+    }
+
+    if (agendamentosRes.data) {
+      setAgendamentos(agendamentosRes.data as unknown as AgendamentoItem[]);
     }
   }, [unidadeId]);
 
@@ -247,8 +295,82 @@ const Admin = () => {
     if (filaUpdateError) {
       toast({ title: 'Erro', description: filaUpdateError.message, variant: 'destructive' });
     } else {
+      setAgendamentos(prev => prev.map(a => 
+        a.id === proximo.agendamento_id ? { ...a, status: 'em_atendimento' } : a
+      ));
       toast({ title: 'Chamado!', description: `Paciente chamado.` });
     }
+  };
+
+  const handleMoverParaFila = async (agendamentoId: string) => {
+    setActionLoading(`chamar_${agendamentoId}`);
+
+    // Buscar a ultima posicao da fila desta unidade hoje
+    const { count } = await supabase
+      .from('fila')
+      .select('id', { count: 'exact', head: true })
+      .eq('unidade_id', unidadeId); // idealmente filtrado pela data de hj tambem na fila se a regra mandar
+
+    const proximaPosicao = (count || 0) + 1;
+
+    // Atualiza status do agendamento
+    const { error: agError } = await supabase
+      .from('agendamentos')
+      .update({
+        status: 'aguardando',
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq('id', agendamentoId);
+
+    if (agError) {
+      setActionLoading(null);
+      toast({ title: 'Erro ao chamar', description: agError.message, variant: 'destructive' });
+      return;
+    }
+
+    // Insere na fila
+    const { error: filaError } = await supabase
+      .from('fila')
+      .insert({
+        agendamento_id: agendamentoId,
+        unidade_id: unidadeId!,
+        posicao: proximaPosicao,
+      });
+
+    setActionLoading(null);
+    if (filaError) {
+      toast({ title: 'Erro na fila', description: filaError.message, variant: 'destructive' });
+      return;
+    }
+    
+    setAgendamentos(prev => prev.map(a => 
+      a.id === agendamentoId ? { ...a, status: 'aguardando' } : a
+    ));
+    
+    toast({ title: 'Enviado para fila', description: 'O paciente foi movido para a fila de espera.', className: 'bg-success text-success-foreground' });
+  };
+
+  const handleAtualizarStatusAgendamento = async (agendamentoId: string, novoStatus: string) => {
+    setActionLoading(`atualizar_${agendamentoId}`);
+    const { error: agError } = await supabase
+      .from('agendamentos')
+      .update({
+        status: novoStatus as any,
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq('id', agendamentoId);
+
+    setActionLoading(null);
+    if (agError) {
+      toast({ title: 'Erro ao atualizar', description: agError.message, variant: 'destructive' });
+      return;
+    }
+    
+    setAgendamentos(prev => prev.map(a => 
+      a.id === agendamentoId ? { ...a, status: novoStatus } : a
+    ));
+    
+    toast({ title: 'Status atualizado', description: `O agendamento foi marcado como ${statusBadgeConfig[novoStatus]?.label || novoStatus}.`, className: 'bg-success text-success-foreground' });
   };
 
   const handleSignOut = async () => {
@@ -342,23 +464,49 @@ const Admin = () => {
     { label: 'Cancelados', value: resumo.cancelados, icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
   ];
 
+  const dateStrHoje = format(new Date(), 'yyyy-MM-dd');
+  const date7 = new Date();
+  date7.setDate(date7.getDate() + 7);
+  const dateStr7 = format(date7, 'yyyy-MM-dd');
+  const currMonth = dateStrHoje.substring(0, 7);
+
+  const agendamentosFilter = agendamentos.filter((ag) => {
+    // Busca
+    if (filtroAgtBusca) {
+      const term = filtroAgtBusca.toLowerCase();
+      const matchNome = ag.perfil?.nome_completo?.toLowerCase().includes(term);
+      const matchSenha = ag.numero_senha?.toLowerCase().includes(term);
+      if (!matchNome && !matchSenha) return false;
+    }
+    
+    // Status
+    if (filtroAgtStatus !== 'Todos' && ag.status !== filtroAgtStatus) {
+      return false;
+    }
+
+    // Data
+    if (filtroAgtData === 'Hoje' && ag.data_agendamento !== dateStrHoje) return false;
+    if (filtroAgtData === 'Próximos 7 dias') {
+      if (ag.data_agendamento < dateStrHoje || ag.data_agendamento > dateStr7) return false;
+    }
+    if (filtroAgtData === 'Este mês' && !ag.data_agendamento.startsWith(currMonth)) return false;
+
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <SmartQueueLogo size="sm" />
             <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
               <Shield size={12} className="mr-1" />
               Painel Admin
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden sm:block text-sm font-medium text-foreground">
-              {perfil?.nome_completo}
-            </span>
-            <UserAvatar src={perfil?.url_avatar} name={perfil?.nome_completo || ''} size={36} />
+            <NotificationPanel />
             <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair">
               <LogOut size={18} />
             </Button>
@@ -390,11 +538,215 @@ const Admin = () => {
           ))}
         </div>
 
-        {/* Queue */}
+        {/* Agendamentos */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 border-b border-border/50">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CalendarCheck size={20} className="text-primary" />
+                Agendamentos
+              </CardTitle>
+              
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                <div className="relative w-full sm:w-64">
+                  <Search size={16} className="absolute left-2.5 top-2.5 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar paciente ou senha..." 
+                    className="pl-9 bg-background"
+                    value={filtroAgtBusca}
+                    onChange={(e) => setFiltroAgtBusca(e.target.value)}
+                  />
+                </div>
+                
+                <Select value={filtroAgtData} onValueChange={setFiltroAgtData}>
+                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                    <SelectValue placeholder="Data" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todas as Datas</SelectItem>
+                    <SelectItem value="Hoje">Hoje</SelectItem>
+                    <SelectItem value="Próximos 7 dias">Próximos 7 dias</SelectItem>
+                    <SelectItem value="Este mês">Este mês</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={filtroAgtStatus} onValueChange={setFiltroAgtStatus}>
+                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Todos">Todos Status</SelectItem>
+                    <SelectItem value="agendado">Agendado</SelectItem>
+                    <SelectItem value="aguardando">Na Fila</SelectItem>
+                    <SelectItem value="em_atendimento">Em Atendimento</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="w-[120px] pl-6">Data</TableHead>
+                    <TableHead className="w-[100px]">Horário</TableHead>
+                    <TableHead>Senha / Paciente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right pr-6">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {agendamentosFilter.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        Nenhum agendamento encontrado com os filtros atuais.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    agendamentosFilter.map((ag) => {
+                      const st = statusBadgeConfig[ag.status] || statusBadgeConfig['agendado'];
+                      
+                      const parts = ag.data_agendamento.split('-');
+                      const formatedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : ag.data_agendamento;
+                      
+                      return (
+                        <TableRow key={ag.id} className={ag.status === 'cancelado' ? "opacity-60 bg-muted/20" : ""}>
+                          <TableCell className="pl-6 text-sm text-muted-foreground">
+                            {formatedDate}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {ag.hora_agendamento.slice(0, 5)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <UserAvatar src={ag.perfil?.url_avatar} name={ag.perfil?.nome_completo || ''} size={36} />
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-primary">{ag.numero_senha || '-'}</span>
+                                <span className="text-sm truncate max-w-[180px]">{ag.perfil?.nome_completo || 'Sem nome'}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col text-sm">
+                              <span>{ag.tipo_atendimento?.nome || 'Atendimento'}</span>
+                              {ag.grupo_prioridade && ag.grupo_prioridade !== 'normal' && (
+                                <span className="text-xs text-warning uppercase font-bold">{ag.grupo_prioridade}</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className={st.className}>
+                              {st.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex items-center justify-end gap-2">
+                              {ag.status === 'agendado' && !isDataPassada(ag.data_agendamento) && (
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  className="h-8 shadow-none bg-blue-600 hover:bg-blue-700 text-white"
+                                  onClick={() => handleMoverParaFila(ag.id)}
+                                  disabled={actionLoading === `chamar_${ag.id}`}
+                                  title="Chamar para fila"
+                                >
+                                  {actionLoading === `chamar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Chamar'}
+                                </Button>
+                              )}
+                              
+                              {ag.status === 'agendado' && isDataPassada(ag.data_agendamento) && (
+                                <>
+                                  <Button 
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="h-8 shadow-none bg-zinc-200 text-zinc-500 cursor-not-allowed"
+                                    disabled={true}
+                                    title="Data já passou"
+                                  >
+                                    Chamar
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    className="h-8 shadow-none"
+                                    onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
+                                    disabled={actionLoading === `atualizar_${ag.id}`}
+                                    title="Marcar como não compareceu"
+                                  >
+                                    {actionLoading === `atualizar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Não compareceu'}
+                                  </Button>
+                                </>
+                              )}
+
+                              {ag.status === 'aguardando' && (
+                                <>
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    className="h-8 shadow-none bg-blue-600 hover:bg-blue-700 text-white"
+                                    onClick={() => handleAtualizarStatusAgendamento(ag.id, 'em_atendimento')}
+                                    disabled={actionLoading === `atualizar_${ag.id}`}
+                                  >
+                                    {actionLoading === `atualizar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Em atendimento'}
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    className="h-8 shadow-none"
+                                    onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
+                                    disabled={actionLoading === `atualizar_${ag.id}`}
+                                  >
+                                    {actionLoading === `atualizar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Não compareceu'}
+                                  </Button>
+                                </>
+                              )}
+
+                              {ag.status === 'em_atendimento' && (
+                                <>
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    className="h-8 shadow-none bg-green-600 hover:bg-green-700 text-white"
+                                    onClick={() => handleAtualizarStatusAgendamento(ag.id, 'concluido')}
+                                    disabled={actionLoading === `atualizar_${ag.id}`}
+                                  >
+                                    {actionLoading === `atualizar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Concluir'}
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    className="h-8 shadow-none"
+                                    onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
+                                    disabled={actionLoading === `atualizar_${ag.id}`}
+                                  >
+                                    {actionLoading === `atualizar_${ag.id}` ? <LoadingSpinner size={14} /> : 'Não compareceu'}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Fila em Tempo Real */}
+        <Card>
+          <CardHeader className="pb-3 border-b border-border/50">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-lg">Fila em Tempo Real</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                 <Users size={20} className="text-primary" />
+                 Fila em Tempo Real
+              </CardTitle>
               <Button onClick={handleChamarProximo} className="bg-success hover:bg-success/90 text-success-foreground">
                 <PhoneCall size={16} className="mr-1" />
                 Chamar próximo
@@ -551,7 +903,7 @@ const Admin = () => {
                                   setEditFormData({
                                     nome_completo: u.nome_completo,
                                     telefone: u.telefone,
-                                    grupo_prioridade: u.grupo_prioridade,
+                                    grupo_prioridade: u.grupo_prioridade as any,
                                     perfil: u.perfil
                                   });
                                   setIsEditDialogOpen(true);
@@ -611,7 +963,7 @@ const Admin = () => {
               <label className="text-sm font-medium">Grupo de Prioridade</label>
               <Select 
                 value={editFormData.grupo_prioridade || 'normal'} 
-                onValueChange={(v) => setEditFormData({...editFormData, grupo_prioridade: v})}
+                onValueChange={(v) => setEditFormData({...editFormData, grupo_prioridade: v as any})}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
@@ -653,5 +1005,19 @@ const Admin = () => {
     </div>
   );
 };
+
+export const sqlJobNaoCompareceu = `
+-- Job automático: marca como nao_compareceu todo dia 00:01
+SELECT cron.schedule(
+  'smartqueue-nao-compareceu',
+  '1 0 * * *',
+  $$
+    UPDATE agendamentos
+    SET status = 'nao_compareceu'
+    WHERE data_agendamento < CURRENT_DATE
+      AND status IN ('agendado', 'aguardando');
+  $$
+);
+`;
 
 export default Admin;

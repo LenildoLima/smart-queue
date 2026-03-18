@@ -49,10 +49,10 @@ const Dashboard = () => {
         return;
       }
 
-      // only select the fields we need (nome_completo, url_avatar and perfil for admin check)
+      // select all fields to avoid TS error with Perfil type
       const { data: perfilData, error: perfilError } = await supabase
         .from('perfis')
-        .select('nome_completo, url_avatar, perfil')
+        .select('*')
         .eq('id', authUser.id)
         .single();
 
@@ -192,7 +192,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <DashboardHeader nomeCompleto={perfil?.nome_completo || ''} avatarUrl={perfil?.url_avatar} />
+      <DashboardHeader isAdmin={isAdmin} />
 
       <main className="container max-w-2xl py-6 space-y-5 animate-fade-in">
         {/* Welcome Card */}
