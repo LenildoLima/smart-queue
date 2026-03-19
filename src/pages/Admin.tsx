@@ -45,10 +45,14 @@ import {
   Edit2,
   Ban,
   CheckCircle,
+  Plus,
+  UserPlus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Tables } from '@/integrations/supabase/types';
+import { NovoAtendimentoModal } from '@/components/NovoAtendimentoModal';
+import { CadastroUsuarioModal } from '@/components/CadastroUsuarioModal';
 
 type Perfil = Tables<'perfis'> & { ativo?: boolean };
 
@@ -105,9 +109,12 @@ const statusBadgeConfig: Record<string, { label: string; className: string }> = 
   nao_compareceu: { label: 'Não Compareceu', className: 'bg-orange-100 text-orange-800 hover:bg-orange-200' }
 };
 
-const isDataPassada = (data: string) => {
-  const hoje = new Date().toISOString().split('T')[0]
-  return data < hoje
+const isDataHoraPassada = (data: string, hora: string) => {
+  const agora = new Date()
+  const dataHoraAgendamento = new Date(`${data}T${hora}`)
+  // Adiciona 30 minutos de tolerância
+  dataHoraAgendamento.setMinutes(dataHoraAgendamento.getMinutes() + 30)
+  return agora > dataHoraAgendamento
 }
 
 const Admin = () => {
@@ -137,6 +144,11 @@ const Admin = () => {
   const [editingUser, setEditingUser] = useState<Perfil | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Perfil>>({});
+  
+  // Novo Atendimento Modal state
+  const [isNovoAtendimentoOpen, setIsNovoAtendimentoOpen] = useState(false);
+  const [preselectedUser, setPreselectedUser] = useState<any>(null);
+  const [isCadastroUsuarioOpen, setIsCadastroUsuarioOpen] = useState(false);
 
   // Check admin access and load initial data
   useEffect(() => {
@@ -176,7 +188,8 @@ const Admin = () => {
       const { error: rlsError } = await supabase
         .from('agendamentos')
         .update({ atualizado_em: new Date().toISOString() })
-        .eq('status', 'xxxxxx_impossible');
+        // @ts-ignore
+        .eq('status', 'xxxxxx_impossible' as any);
         
       if (rlsError && (rlsError.code === '42501' || rlsError.message.includes('permission denied') || rlsError.message.includes('RLS'))) {
         console.warn('Aviso RLS: A política que permite o administrador atualizar o status dos agendamentos da própria unidade pode estar ausente ou configurada incorretamente no Supabase. Verifique as políticas da tabela agendamentos!');
@@ -201,6 +214,7 @@ const Admin = () => {
         .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id, numero_senha, status, grupo_prioridade, tipo_atendimento_id, usuario_id, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome))')
         .eq('unidade_id', unidadeId)
         .is('atendimento_fim', null)
+        .in('agendamentos.status', ['aguardando', 'em_atendimento'])
         .order('posicao', { ascending: true }),
       supabase.from('perfis').select('*').order('nome_completo', { ascending: true }),
       supabase
@@ -221,7 +235,11 @@ const Admin = () => {
     });
 
     if (filaRes.data) {
-      setFila(filaRes.data as unknown as FilaItem[]);
+      // Garante que o item da fila possua um agendamento válido nos status corretos (caso o in não estrito anule o objeto relacionado)
+      const filaValida = (filaRes.data as unknown as FilaItem[]).filter(f => 
+        f.agendamento && ['aguardando', 'em_atendimento'].includes(f.agendamento.status)
+      );
+      setFila(filaValida);
     }
     
     if (usuariosRes.data) {
@@ -234,25 +252,54 @@ const Admin = () => {
   }, [unidadeId]);
 
   useEffect(() => {
-    if (unidadeId) fetchData();
-  }, [unidadeId, fetchData]);
-
-  // Realtime subscription
-  useEffect(() => {
     if (!unidadeId) return;
 
-    const channel = supabase
+    // Busca inicial
+    fetchData();
+
+    // Escuta mudanças nas tabelas
+    const canalFila = supabase
       .channel('admin-fila-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'fila', filter: `unidade_id=eq.${unidadeId}` }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos', filter: `unidade_id=eq.${unidadeId}` }, () => fetchData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'perfis' }, () => fetchData())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'fila',
+        filter: `unidade_id=eq.${unidadeId}`
+      }, () => {
+        fetchData();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'agendamentos',
+        filter: `unidade_id=eq.${unidadeId}`
+      }, () => {
+        fetchData();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'perfis'
+      }, () => {
+        fetchData();
+      })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(canalFila);
+    };
   }, [unidadeId, fetchData]);
 
   const handleChamarProximo = async () => {
     if (!unidadeId) return;
+
+    // Finalizar atendimentos anteriores que já foram chamados mas não finalizados
+    await supabase
+      .from('fila')
+      .update({ atendimento_fim: new Date().toISOString() })
+      .eq('unidade_id', unidadeId)
+      .is('atendimento_fim', null)
+      .not('chamado_em', 'is', null);
 
     // Buscar próximo da fila (ordenado por posição, sem atendimento_fim)
     const { data: proximo, error: filaError } = await supabase
@@ -305,13 +352,17 @@ const Admin = () => {
   const handleMoverParaFila = async (agendamentoId: string) => {
     setActionLoading(`chamar_${agendamentoId}`);
 
-    // Buscar a ultima posicao da fila desta unidade hoje
-    const { count } = await supabase
+    // Buscar a ultima posicao da fila desta unidade
+    const { data: filaData } = await supabase
       .from('fila')
-      .select('id', { count: 'exact', head: true })
-      .eq('unidade_id', unidadeId); // idealmente filtrado pela data de hj tambem na fila se a regra mandar
+      .select('posicao')
+      .eq('unidade_id', unidadeId)
+      .is('atendimento_fim', null)
+      .order('posicao', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-    const proximaPosicao = (count || 0) + 1;
+    const proximaPosicao = (filaData?.posicao ?? 0) + 1;
 
     // Atualiza status do agendamento
     const { error: agError } = await supabase
@@ -359,6 +410,13 @@ const Admin = () => {
         atualizado_em: new Date().toISOString(),
       })
       .eq('id', agendamentoId);
+
+    if (novoStatus === 'concluido' || novoStatus === 'nao_compareceu') {
+      await supabase
+        .from('fila')
+        .update({ atendimento_fim: new Date().toISOString() })
+        .eq('agendamento_id', agendamentoId);
+    }
 
     setActionLoading(null);
     if (agError) {
@@ -542,10 +600,31 @@ const Admin = () => {
         <Card>
           <CardHeader className="pb-3 border-b border-border/50">
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CalendarCheck size={20} className="text-primary" />
-                Agendamentos
-              </CardTitle>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CalendarCheck size={20} className="text-primary" />
+                  Agendamentos
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50 bg-white shadow-sm h-8"
+                    onClick={() => setIsCadastroUsuarioOpen(true)}
+                  >
+                    <UserPlus size={16} className="mr-1.5" />
+                    Cadastrar Usuário
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm h-8"
+                    onClick={() => setIsNovoAtendimentoOpen(true)}
+                  >
+                    <Plus size={16} className="mr-1.5" />
+                    Novo Atendimento
+                  </Button>
+                </div>
+              </div>
               
               <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                 <div className="relative w-full sm:w-64">
@@ -645,7 +724,7 @@ const Admin = () => {
                           </TableCell>
                           <TableCell className="text-right pr-6">
                             <div className="flex items-center justify-end gap-2">
-                              {ag.status === 'agendado' && !isDataPassada(ag.data_agendamento) && (
+                              {ag.status === 'agendado' && !isDataHoraPassada(ag.data_agendamento, ag.hora_agendamento) && (
                                 <Button 
                                   variant="default" 
                                   size="sm" 
@@ -658,7 +737,7 @@ const Admin = () => {
                                 </Button>
                               )}
                               
-                              {ag.status === 'agendado' && isDataPassada(ag.data_agendamento) && (
+                              {ag.status === 'agendado' && isDataHoraPassada(ag.data_agendamento, ag.hora_agendamento) && (
                                 <>
                                   <Button 
                                     variant="secondary" 
@@ -761,26 +840,29 @@ const Admin = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {fila.map((item, index) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
-                        {item.posicao}
-                      </Badge>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {item.agendamento?.perfil?.nome_completo || `Paciente ${item.id.slice(0, 8)}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.agendamento?.tipo_atendimento?.nome || 'Atendimento'}
-                        </p>
+                {fila.map((item, index) => {
+                  const st = statusBadgeConfig[item.agendamento?.status || 'aguardando'] || statusBadgeConfig['aguardando'];
+                  return (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                          {index + 1}
+                        </Badge>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {item.agendamento?.perfil?.nome_completo || `Paciente ${item.id.slice(0, 8)}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.agendamento?.tipo_atendimento?.nome || 'Atendimento'}
+                          </p>
+                        </div>
                       </div>
+                      <Badge variant="secondary" className={st.className}>
+                        {st.label}
+                      </Badge>
                     </div>
-                    <Badge variant={item.chamado_em ? 'default' : 'secondary'}>
-                      {item.chamado_em ? 'Chamado' : 'Aguardando'}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -1002,6 +1084,36 @@ const Admin = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Cadastro de Usuário */}
+      <CadastroUsuarioModal 
+        isOpen={isCadastroUsuarioOpen} 
+        onClose={() => setIsCadastroUsuarioOpen(false)}
+        onSuccess={(newUser) => {
+          setIsCadastroUsuarioOpen(false);
+          fetchData();
+          if (newUser) {
+            setPreselectedUser(newUser);
+            setIsNovoAtendimentoOpen(true);
+          }
+        }}
+      />
+      
+      {/* Modal de Novo Atendimento */}
+      {unidadeId && (
+        <NovoAtendimentoModal 
+          isOpen={isNovoAtendimentoOpen} 
+          onClose={() => {
+             setIsNovoAtendimentoOpen(false);
+             setPreselectedUser(null);
+          }} 
+          unidadeId={unidadeId}
+          onSuccess={() => {
+            fetchData();
+          }}
+          initialUser={preselectedUser}
+        />
+      )}
     </div>
   );
 };
