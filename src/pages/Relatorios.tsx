@@ -101,35 +101,59 @@ export default function Relatorios() {
     setFetchingData(true);
     setPaginaAtual(1); // resettar paginação
 
-    const [agendamentosRes, historicoRes] = await Promise.all([
-      supabase
-        .from('agendamentos')
-        .select('id, status, data_agendamento')
-        .eq('unidade_id', unidadeId)
-        .gte('data_agendamento', dataInicio)
-        .lte('data_agendamento', dataFim),
-        
-      supabase
-        .from('historico_atendimentos')
-        .select(`
-          id, 
-          status, 
-          data_atendimento, 
-          tempo_espera_minutos, 
-          duracao_minutos,
-          perfis!historico_atendimentos_usuario_id_fkey(nome_completo),
-          tipos_atendimento!historico_atendimentos_tipo_atendimento_id_fkey(nome),
-          agendamentos!historico_atendimentos_agendamento_id_fkey(numero_senha)
-        `)
-        .eq('unidade_id', unidadeId)
-        .gte('data_atendimento', dataInicio)
-        .lte('data_atendimento', dataFim)
-        .order('data_atendimento', { ascending: false })
-    ]);
+    // Query 1 - busca os agendamentos para o resumo
+    const { data: agendamentosData } = await supabase
+      .from('agendamentos')
+      .select('status, data_agendamento')
+      .eq('unidade_id', unidadeId)
+      .gte('data_agendamento', dataInicio)
+      .lte('data_agendamento', dataFim);
 
-    if (agendamentosRes.data) setAgendamentos(agendamentosRes.data);
-    if (historicoRes.data) setHistorico(historicoRes.data);
-    
+    if (agendamentosData) setAgendamentos(agendamentosData);
+
+    // Query 2 - busca o histórico
+    const { data: historicoBase } = await supabase
+      .from('historico_atendimentos')
+      .select('*')
+      .eq('unidade_id', unidadeId)
+      .gte('data_atendimento', dataInicio)
+      .lte('data_atendimento', dataFim)
+      .order('data_atendimento', { ascending: false });
+
+    if (!historicoBase || historicoBase.length === 0) {
+      setHistorico([]);
+      setFetchingData(false);
+      return;
+    }
+
+    const agendamentoIds = [...new Set(historicoBase.map(h => h.agendamento_id).filter(Boolean))];
+    const usuarioIds = [...new Set(historicoBase.map(h => h.usuario_id).filter(Boolean))];
+
+    // Query 3 - busca agendamentos para pegar numero_senha
+    const { data: agendamentosRel } = await supabase
+      .from('agendamentos')
+      .select('id, numero_senha, tipo_atendimento_id, tipos_atendimento(nome)')
+      .in('id', agendamentoIds);
+
+    // Query 4 - busca perfis para pegar nome
+    const { data: perfisRel } = await supabase
+      .from('perfis')
+      .select('id, nome_completo')
+      .in('id', usuarioIds);
+
+    // Combina os dados
+    const historicoCompleto = historicoBase.map(h => {
+      const ag = agendamentosRel?.find(a => a.id === h.agendamento_id);
+      const pf = perfisRel?.find(p => p.id === h.usuario_id);
+      return {
+        ...h,
+        numero_senha: ag?.numero_senha,
+        nome_paciente: pf?.nome_completo,
+        tipo_nome: (ag?.tipos_atendimento as any)?.nome
+      };
+    });
+
+    setHistorico(historicoCompleto);
     setFetchingData(false);
   };
 
@@ -150,11 +174,11 @@ export default function Relatorios() {
     const headers = ['Data', 'Senha', 'Paciente', 'Serviço', 'Espera (min)', 'Duração (min)', 'Status'];
     const rows = historico.map(h => [
       format(new Date(h.data_atendimento + 'T00:00:00'), 'dd/MM/yyyy'),
-      h.agendamentos?.numero_senha || '-',
-      h.perfis?.nome_completo || '-',
-      h.tipos_atendimento?.nome || '-',
-      h.tempo_espera_minutos || '0',
-      h.duracao_minutos || '0',
+      h.numero_senha || '-',
+      h.nome_paciente || '-',
+      h.tipo_nome || '-',
+      h.tempo_espera_minutos !== null ? h.tempo_espera_minutos : '-',
+      h.duracao_minutos !== null ? h.duracao_minutos : '-',
       STATUS_LABELS[h.status] || h.status
     ]);
     
@@ -186,15 +210,9 @@ export default function Relatorios() {
     const taxaComparecimento = validos > 0 ? Math.round((concluidos / validos) * 100) : 0;
     
     // Media de espera a partir do historico
-    let somaEspera = 0;
-    let countEspera = 0;
-    historico.forEach(h => {
-      if (h.tempo_espera_minutos !== null) {
-        somaEspera += h.tempo_espera_minutos;
-        countEspera++;
-      }
-    });
-    const mediaEspera = countEspera > 0 ? Math.round(somaEspera / countEspera) : 0;
+    const historicoValido = historico.filter(h => h.tempo_espera_minutos !== null && h.tempo_espera_minutos !== undefined);
+    const somaEspera = historicoValido.reduce((acc, h) => acc + h.tempo_espera_minutos, 0);
+    const mediaEspera = historicoValido.length > 0 ? Math.round(somaEspera / historicoValido.length) : 0;
 
     return { total, concluidos, cancelados, naoCompareceu, taxaComparecimento, mediaEspera };
   }, [agendamentos, historico]);
@@ -446,14 +464,14 @@ export default function Relatorios() {
                     ) : (paginatedData.map((item) => (
                       <TableRow key={item.id} className="hover:bg-slate-50 border-slate-100">
                         <TableCell className="text-slate-600">{format(new Date(item.data_atendimento + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell className="font-bold text-slate-700">{item.agendamentos?.numero_senha || '-'}</TableCell>
-                        <TableCell className="font-medium text-slate-800">{item.perfis?.nome_completo || '-'}</TableCell>
-                        <TableCell className="text-slate-600">{item.tipos_atendimento?.nome || '-'}</TableCell>
+                        <TableCell className="font-bold text-slate-700">{item.numero_senha || '-'}</TableCell>
+                        <TableCell className="font-medium text-slate-800">{item.nome_paciente || '-'}</TableCell>
+                        <TableCell className="text-slate-600">{item.tipo_nome || '-'}</TableCell>
                         <TableCell className="text-center text-slate-600">
-                          {item.tempo_espera_minutos !== null ? `${item.tempo_espera_minutos} min` : '-'}
+                          {item.tempo_espera_minutos !== null && item.tempo_espera_minutos !== undefined ? `${item.tempo_espera_minutos} min` : '-'}
                         </TableCell>
                         <TableCell className="text-center text-slate-600">
-                          {item.duracao_minutos !== null ? `${item.duracao_minutos} min` : '-'}
+                          {item.duracao_minutos !== null && item.duracao_minutos !== undefined ? `${item.duracao_minutos} min` : '-'}
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge 

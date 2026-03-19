@@ -335,6 +335,7 @@ const Admin = () => {
       .from('fila')
       .update({
         chamado_em: new Date().toISOString(),
+        iniciado_em: new Date().toISOString(),
         atendimento_inicio: new Date().toISOString(),
       })
       .eq('id', proximo.id);
@@ -403,6 +404,14 @@ const Admin = () => {
 
   const handleAtualizarStatusAgendamento = async (agendamentoId: string, novoStatus: string) => {
     setActionLoading(`atualizar_${agendamentoId}`);
+
+    if (novoStatus === 'em_atendimento') {
+      await supabase
+        .from('fila')
+        .update({ iniciado_em: new Date().toISOString() })
+        .eq('agendamento_id', agendamentoId);
+    }
+
     const { error: agError } = await supabase
       .from('agendamentos')
       .update({
@@ -411,7 +420,34 @@ const Admin = () => {
       })
       .eq('id', agendamentoId);
 
-    if (novoStatus === 'concluido' || novoStatus === 'nao_compareceu') {
+    if (novoStatus === 'concluido') {
+      // Busca iniciado_em da fila
+      const { data: filaEntry } = await supabase
+        .from('fila')
+        .select('chamado_em, iniciado_em')
+        .eq('agendamento_id', agendamentoId)
+        .single();
+        
+      const agora = new Date();
+      const iniciado = filaEntry?.iniciado_em ? new Date(filaEntry.iniciado_em) : agora;
+      const chamado = filaEntry?.chamado_em ? new Date(filaEntry.chamado_em) : agora;
+      
+      const duracaoMin = Math.round((agora.getTime() - iniciado.getTime()) / 60000);
+      const esperaMin = Math.round((iniciado.getTime() - chamado.getTime()) / 60000);
+      
+      await supabase
+        .from('fila')
+        .update({ atendimento_fim: agora.toISOString(), finalizado_em: agora.toISOString() })
+        .eq('agendamento_id', agendamentoId);
+        
+      await supabase
+        .from('historico_atendimentos')
+        .update({ 
+          tempo_espera_minutos: esperaMin,
+          duracao_minutos: duracaoMin
+        })
+        .eq('agendamento_id', agendamentoId);
+    } else if (novoStatus === 'nao_compareceu') {
       await supabase
         .from('fila')
         .update({ atendimento_fim: new Date().toISOString() })
