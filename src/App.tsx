@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 
 import Agendar from "./pages/Agendar";
 import Relatorios from "./pages/Relatorios";
+import Fila from "./pages/Fila";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +34,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendar" element={<ProtectedRoute><Agendar /></ProtectedRoute>} />
-            <Route path="/fila" element={<ProtectedRoute><ComingSoon title="Fila — Em breve" /></ProtectedRoute>} />
+            <Route path="/fila" element={<ProtectedRoute><Fila /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
