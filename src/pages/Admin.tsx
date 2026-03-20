@@ -474,11 +474,11 @@ const Admin = () => {
 
   if (erro) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-transparent gap-4">
         <div className="text-center space-y-3">
-          <h2 className="text-2xl font-bold text-foreground">Erro de acesso</h2>
-          <p className="text-muted-foreground">{erro}</p>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-bold text-[#e8e8f0]">Erro de acesso</h2>
+          <p className="text-[#6b6b8a]">{erro}</p>
+          <p className="text-sm text-[#6b6b8a]">
             Contacte o administrador do sistema para ser associado a uma unidade.
           </p>
         </div>
@@ -488,7 +488,7 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
         <LoadingSpinner />
       </div>
     );
@@ -589,7 +589,7 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] font-[Inter] text-[#e8e8f0]">
+    <div className="min-h-screen bg-transparent font-[Inter] text-[#e8e8f0]">
       {/* Background Elements */}
       <div style={{
         position: 'fixed',

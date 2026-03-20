@@ -54,7 +54,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <Navigation />
       
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ 
+        position: 'relative', 
+        zIndex: 1,
+        transition: 'opacity 0.2s ease',
+        opacity: 1 
+      }}>
         {children}
       </div>
     </div>

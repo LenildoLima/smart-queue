@@ -209,7 +209,7 @@ const Perfil = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-transparent">
         <LoadingSpinner />
       </div>
     );
