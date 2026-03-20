@@ -20,9 +20,9 @@ type Agendamento = Tables<'agendamentos'>;
 type FilaRow = Tables<'fila'>;
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  agendado: { label: 'Agendado', color: 'bg-primary text-primary-foreground' },
-  aguardando: { label: 'Aguardando', color: 'bg-warning text-warning-foreground' },
-  em_atendimento: { label: 'É sua vez!', color: 'bg-destructive text-destructive-foreground' },
+  agendado: { label: 'Agendado', color: 'border border-[#7c6aff] text-[#7c6aff] bg-transparent' },
+  aguardando: { label: 'Aguardando', color: 'border border-[#f59e0b] text-[#f59e0b] bg-transparent' },
+  em_atendimento: { label: 'É sua vez!', color: 'border border-[#00d4aa] text-[#00d4aa] bg-transparent animate-pulse shadow-[0_0_10px_rgba(0,212,170,0.5)]' },
 };
 
 const Dashboard = () => {
@@ -191,19 +191,20 @@ const Dashboard = () => {
   const status = agendamento ? statusConfig[agendamento.status] || statusConfig.agendado : null;
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-transparent pb-20 md:pb-0 font-[Inter]">
       <DashboardHeader isAdmin={isAdmin} />
 
       <main className="container max-w-2xl py-6 space-y-5 animate-fade-in">
         {/* Welcome Card */}
-        <Card>
+        <Card className="bg-[#13131f] border-[#2d2d45]">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-foreground">Olá, {nome}! 👋</h2>
-              <p className="text-sm text-muted-foreground capitalize mt-1">{hoje}</p>
+              <div className="text-[#7c6aff] text-xs font-bold mb-1 tracking-wider uppercase">// dashboard</div>
+              <h2 className="text-xl font-bold text-[#e8e8f0] font-[Syne]">Olá, {nome}! 👋</h2>
+              <p className="text-sm text-[#6b6b8a] capitalize mt-1">{hoje}</p>
             </div>
             {isAdmin && (
-              <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')} className="border-[#7c6aff] text-[#7c6aff] hover:bg-[#7c6aff] hover:text-white">
                 <Shield size={16} className="mr-1" />
                 Painel Admin
               </Button>
@@ -213,10 +214,10 @@ const Dashboard = () => {
 
         {/* Active Appointment or Empty */}
         {agendamento ? (
-          <Card className="border-primary/30">
-            <CardHeader className="pb-3">
+          <Card className="bg-[#13131f] border-[#2d2d45]">
+            <CardHeader className="pb-3 border-b border-[#1e1e2e]">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Agendamento Ativo</CardTitle>
+                <CardTitle className="text-lg text-[#e8e8f0] font-[Syne]">Agendamento Ativo</CardTitle>
                 {status && (
                   <Badge className={status.color}>{status.label}</Badge>
                 )}
@@ -224,29 +225,29 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-5">
               {/* Ticket number */}
-              <div className="flex flex-col items-center gap-1 py-3">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Sua senha</span>
-                <span className="text-5xl font-extrabold text-primary tracking-widest">
+              <div className="flex flex-col items-center gap-1 py-5">
+                <span className="text-xs text-[#6b6b8a] uppercase tracking-wider font-medium">Sua senha</span>
+                <span className="text-6xl font-extrabold text-[#7c6aff] tracking-widest font-[Syne] drop-shadow-[0_0_15px_rgba(124,106,255,0.4)]">
                   {agendamento.numero_senha || '---'}
                 </span>
               </div>
 
               {/* Queue position */}
               {fila && (
-                <div className="rounded-lg bg-muted p-4 space-y-3">
+                <div className="rounded-lg bg-[#111118] border border-[#1e1e2e] p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Posição na fila</span>
-                    <span className="text-3xl font-bold text-foreground">{fila.posicao}º</span>
+                    <span className="text-sm text-[#6b6b8a] font-medium">Posição na fila</span>
+                    <span className="text-3xl font-bold text-[#e8e8f0] font-[Syne]">{fila.posicao}º</span>
                   </div>
-                  <Progress value={progressValue} className="h-2" />
-                  <p className="text-xs text-muted-foreground text-center">
-                    {fila.posicao <= 1 ? 'Você é o próximo!' : `${fila.posicao - 1} pessoa(s) na sua frente`}
+                  <Progress value={progressValue} className="h-2 bg-[#1e1e2e] [&>div]:bg-[#00d4aa]" />
+                  <p className="text-xs text-[#6b6b8a] text-center">
+                    {fila.posicao <= 1 ? <span className="text-[#00d4aa] font-bold drop-shadow-[0_0_8px_rgba(0,212,170,0.5)]">Você é o próximo!</span> : `${fila.posicao - 1} pessoa(s) na sua frente`}
                   </p>
                 </div>
               )}
 
               {/* Date & time */}
-              <div className="flex justify-between text-sm text-muted-foreground">
+              <div className="flex justify-between text-sm text-[#6b6b8a]">
                 <span>📅 {format(new Date(agendamento.data_agendamento + 'T00:00:00'), "dd/MM/yyyy")}</span>
                 <span>🕐 {agendamento.hora_agendamento.slice(0, 5)}</span>
               </div>
@@ -255,24 +256,24 @@ const Dashboard = () => {
               {agendamento.status === 'agendado' && (
                 <Button
                   variant="outline"
-                  className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  className="w-full border-[#ff6b6b] text-[#ff6b6b] hover:bg-[#ff6b6b]/10 hover:text-[#ff6b6b]"
                   onClick={handleCancelar}
                 >
-                  <X size={16} />
+                  <X size={16} className="mr-2" />
                   Cancelar agendamento
                 </Button>
               )}
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-dashed">
+          <Card className="bg-[#13131f] border-[#2d2d45] border-dashed">
             <CardContent className="flex flex-col items-center gap-4 py-10">
-              <div className="rounded-full bg-muted p-4">
-                <CalendarPlus size={32} className="text-muted-foreground" />
+              <div className="rounded-full bg-[#7c6aff]/10 p-4 shadow-[0_0_20px_rgba(124,106,255,0.2)]">
+                <CalendarPlus size={32} className="text-[#7c6aff]" />
               </div>
-              <p className="text-muted-foreground font-medium">Você não tem agendamentos ativos</p>
-              <Button onClick={() => navigate('/agendar')}>
-                <CalendarPlus size={16} />
+              <p className="text-[#6b6b8a] font-medium">Você não tem agendamentos ativos</p>
+              <Button onClick={() => navigate('/agendar')} className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white border-0 hover:opacity-90 transition-opacity">
+                <CalendarPlus size={16} className="mr-2" />
                 Agendar agora
               </Button>
             </CardContent>

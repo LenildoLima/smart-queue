@@ -243,20 +243,20 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
   const renderStep1 = () => (
     <div className="space-y-4 animate-fade-in">
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Buscar Paciente (Nome ou CPF)</label>
+            <label className="text-sm font-medium mb-1.5 block text-[#6b6b8a] uppercase tracking-[1px] text-[11px]">Buscar Paciente (Nome ou CPF)</label>
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-[#6b6b8a]" />
               <Input 
                 autoFocus
                 placeholder="Ex: João da Silva" 
-                className="pl-9 h-11"
+                className="pl-9 h-11 bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
           
-          <div className="min-h-[200px] border rounded-lg p-2 bg-slate-50/50">
+          <div className="min-h-[200px] border border-[#2d2d45] rounded-lg p-2 bg-[#13131f]/50">
             {loading && <div className="p-4 flex justify-center"><LoadingSpinner size={20} /></div>}
             
             {!loading && users.length > 0 && (
@@ -265,27 +265,27 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
                   <div 
                     key={u.id} 
                     onClick={() => setSelectedUser(u)}
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedUser?.id === u.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-100 border border-transparent'}`}
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedUser?.id === u.id ? 'bg-[#7c6aff]/10 border border-[#7c6aff]/30' : 'hover:bg-[#1e1e2e] border border-transparent'}`}
                   >
-                    <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-lg">
+                    <div className="w-10 h-10 bg-[#7c6aff]/20 text-[#7c6aff] rounded-full flex items-center justify-center font-bold text-lg">
                       {u.nome_completo?.charAt(0)}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-800">{u.nome_completo}</p>
-                      <p className="text-sm text-slate-500">{u.cpf ? `CPF: ${u.cpf}` : 'Sem CPF'} • {u.telefone || 'Sem Tel'}</p>
+                      <p className="font-semibold text-[#e8e8f0]">{u.nome_completo}</p>
+                      <p className="text-sm text-[#6b6b8a]">{u.cpf ? `CPF: ${u.cpf}` : 'Sem CPF'} • {u.telefone || 'Sem Tel'}</p>
                     </div>
-                    {selectedUser?.id === u.id && <Check className="text-blue-600" size={20} />}
+                    {selectedUser?.id === u.id && <Check className="text-[#00d4aa]" size={20} />}
                   </div>
                 ))}
               </div>
             )}
             
             {!loading && searchQuery.length >= 3 && users.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center py-8 text-center text-slate-500 px-4">
+              <div className="h-full flex flex-col items-center justify-center py-8 text-center text-[#6b6b8a] px-4">
                 <UserIcon size={32} className="mb-2 opacity-50" />
                 <p>Nenhum paciente encontrado com "{searchQuery}".</p>
                 <p className="mt-4 text-sm max-w-sm">
-                  Use o botão <strong className="text-blue-600">'+ Cadastrar Usuário'</strong> no painel admin para criar um novo cadastro.
+                  Use o botão <strong className="text-[#7c6aff]">'+ Cadastrar Usuário'</strong> no painel admin para criar um novo cadastro.
                 </p>
               </div>
             )}
@@ -295,17 +295,17 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
 
   const renderStep2 = () => (
     <div className="space-y-4 animate-fade-in">
-      <h3 className="font-semibold text-slate-700">O que deseja agendar?</h3>
+      <h3 className="font-semibold text-[#e8e8f0]">O que deseja agendar?</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {services.length === 0 && <p className="text-slate-500 col-span-2 py-4 text-center">Nenhum serviço disponível.</p>}
+        {services.length === 0 && <p className="text-[#6b6b8a] col-span-2 py-4 text-center">Nenhum serviço disponível.</p>}
         {services.map(s => (
           <div 
             key={s.id}
             onClick={() => setSelectedService(s)}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedService?.id === s.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300 bg-white'}`}
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedService?.id === s.id ? 'border-[#7c6aff] bg-[#7c6aff]/10' : 'border-[#2d2d45] hover:border-[#7c6aff]/50 bg-[#13131f]'}`}
           >
-            <p className="font-bold text-slate-800">{s.nome}</p>
-            <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+            <p className="font-bold text-[#e8e8f0]">{s.nome}</p>
+            <p className="text-sm text-[#6b6b8a] mt-1 flex items-center gap-1">
               <Clock size={14} /> aprox. {s.duracao_media_minutos} min
             </p>
           </div>
@@ -318,24 +318,25 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
     <div className="space-y-6 animate-fade-in">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
-           <label className="text-sm font-semibold text-slate-700 flex items-center gap-2"><Calendar size={16}/> Data do Atendimento</label>
+           <label className="text-sm font-semibold text-[#6b6b8a] uppercase tracking-[1px] text-[11px] flex items-center gap-2"><Calendar size={16}/> Data do Atendimento</label>
            <Input 
              type="date" 
              value={selectedDate} 
              onChange={e => { setSelectedDate(e.target.value); setSelectedSlot(null); }}
-             className="h-11"
+             className="h-11 bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
              min={format(new Date(), 'yyyy-MM-dd')}
+             style={{ colorScheme: 'dark' }}
            />
         </div>
       </div>
       
-      <div className="border-t pt-4">
-         <label className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-3"><Clock size={16}/> Horários Disponíveis</label>
+      <div className="border-t border-[#1e1e2e] pt-4">
+         <label className="text-sm font-semibold text-[#6b6b8a] uppercase tracking-[1px] text-[11px] flex items-center gap-2 mb-3"><Clock size={16}/> Horários Disponíveis</label>
          
          {loading ? (
             <div className="py-8 flex justify-center"><LoadingSpinner size={24}/></div>
          ) : slotStatusMsg ? (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg flex gap-3 text-sm">
+            <div className="bg-[#ff6b6b]/10 border border-[#ff6b6b]/30 text-[#ff6b6b] p-4 rounded-lg flex gap-3 text-sm">
                <AlertCircle size={20} className="flex-shrink-0" />
                <p>{slotStatusMsg}</p>
             </div>
@@ -346,7 +347,7 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
                     key={s}
                     variant="outline"
                     onClick={() => setSelectedSlot(s)}
-                    className={`h-10 text-sm font-medium ${selectedSlot === s ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white' : 'hover:bg-blue-50 hover:border-blue-200'}`}
+                    className={`h-10 text-sm font-medium ${selectedSlot === s ? 'bg-[#7c6aff] text-white border-[#7c6aff] hover:bg-[#7c6aff]/90 hover:text-white' : 'border-[#2d2d45] text-[#e8e8f0] bg-transparent hover:bg-[#1e1e2e] hover:text-[#e8e8f0]'}`}
                   >
                     {s}
                   </Button>
@@ -363,36 +364,36 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
     
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="bg-slate-50 border rounded-xl p-5 space-y-4">
-           <h3 className="font-bold text-lg text-slate-800 border-b pb-2">Resumo da Solicitação</h3>
+        <div className="bg-[#13131f] border border-[#2d2d45] rounded-xl p-5 space-y-4">
+           <h3 className="font-bold text-lg text-[#e8e8f0] border-b border-[#1e1e2e] pb-2 font-[Syne]">Resumo da Solicitação</h3>
            
            <div className="grid grid-cols-2 gap-4">
               <div>
-                 <p className="text-xs text-slate-500 font-semibold uppercase">Paciente</p>
-                 <p className="font-medium text-slate-800">{selectedUser?.nome_completo}</p>
-                 <Badge variant="outline" className="mt-1">{selectedUser?.grupo_prioridade || 'Normal'}</Badge>
+                 <p className="text-xs text-[#6b6b8a] font-semibold uppercase tracking-[1px]">Paciente</p>
+                 <p className="font-medium text-[#e8e8f0]">{selectedUser?.nome_completo}</p>
+                 <Badge variant="outline" className="mt-1 border-[#2d2d45] text-[#6b6b8a]">{selectedUser?.grupo_prioridade || 'Normal'}</Badge>
               </div>
               <div>
-                 <p className="text-xs text-slate-500 font-semibold uppercase">Serviço</p>
-                 <p className="font-medium text-slate-800">{selectedService?.nome}</p>
-                 <p className="text-sm text-slate-500">{selectedService?.duracao_media_minutos} min</p>
+                 <p className="text-xs text-[#6b6b8a] font-semibold uppercase tracking-[1px]">Serviço</p>
+                 <p className="font-medium text-[#e8e8f0]">{selectedService?.nome}</p>
+                 <p className="text-sm text-[#6b6b8a]">{selectedService?.duracao_media_minutos} min</p>
               </div>
               <div>
-                 <p className="text-xs text-slate-500 font-semibold uppercase">Data e Hora</p>
-                 <p className="font-medium text-slate-800">{format(parseISO(selectedDate), 'dd/MM/yyyy')}</p>
-                 <p className="text-blue-600 font-bold text-lg">{selectedSlot || 'Automático'}</p>
+                 <p className="text-xs text-[#6b6b8a] font-semibold uppercase tracking-[1px]">Data e Hora</p>
+                 <p className="font-medium text-[#00d4aa]">{format(parseISO(selectedDate), 'dd/MM/yyyy')}</p>
+                 <p className="text-[#00d4aa] font-bold text-lg">{selectedSlot || 'Automático'}</p>
               </div>
            </div>
         </div>
         
-        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
-           <AlertCircle className="text-blue-600 mt-0.5" size={20} />
-           <div className="text-sm text-blue-800">
-              <strong className="block mb-1">Ação que será executada:</strong>
+        <div className="bg-[#7c6aff]/10 border border-[#7c6aff]/20 p-4 rounded-xl flex items-start gap-3">
+           <AlertCircle className="text-[#7c6aff] mt-0.5 flex-shrink-0" size={20} />
+           <div className="text-sm text-[#e8e8f0]">
+              <strong className="block mb-1 text-[#7c6aff]">Ação que será executada:</strong>
               {isToday && hasVacancy ? (
                 <span>Como a data é hoje e há disponibilidade, o paciente <b>entrará automaticamente na fila de espera (Status: Na Fila)</b>.</span>
               ) : (
-                <span>O paciente ficará com status <b>Agendado</b> para a data escolhida.</span>
+                <span>O paciente ficará com status <b className="text-[#7c6aff]">Agendado</b> para a data escolhida.</span>
               )}
            </div>
         </div>
@@ -402,30 +403,30 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-2xl bg-white p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-2xl bg-[#111118] border-[#2d2d45] text-[#e8e8f0] p-0 gap-0 overflow-hidden">
         {/* Header with Steps */}
-        <div className="bg-slate-50 border-b p-4 sm:px-6">
+        <div className="bg-[#13131f] border-b border-[#1e1e2e] p-4 sm:px-6">
            <DialogHeader>
-             <DialogTitle className="text-xl text-slate-800">Novo Atendimento Presencial</DialogTitle>
+             <DialogTitle className="font-[Syne] text-xl text-[#e8e8f0]">Novo Atendimento Presencial</DialogTitle>
              <DialogDescription className="hidden">Criação manual pelo Admin</DialogDescription>
            </DialogHeader>
            
            <div className="flex items-center gap-2 mt-4">
              {[1, 2, 3, 4].map(s => (
                <div key={s} className="flex items-center flex-1 last:flex-none">
-                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${step >= s ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${step >= s ? 'bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white' : 'bg-[#1e1e2e] text-[#6b6b8a]'}`}>
                     {step > s ? <Check size={16}/> : s}
                  </div>
-                 {s < 4 && <div className={`h-1 flex-1 mx-2 rounded-full ${step > s ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+                 {s < 4 && <div className={`h-1 flex-1 mx-2 rounded-full ${step > s ? 'bg-[#00d4aa]' : 'bg-[#1e1e2e]'}`} />}
                </div>
              ))}
            </div>
            
-           <div className="flex justify-between text-xs font-semibold text-slate-500 mt-2 px-1">
-              <span className={step >= 1 ? 'text-blue-700' : ''}>Paciente</span>
-              <span className={step >= 2 ? 'text-blue-700 text-center' : 'text-center'}>Serviço</span>
-              <span className={step >= 3 ? 'text-blue-700 text-center' : 'text-center'}>Data</span>
-              <span className={step >= 4 ? 'text-blue-700 text-right' : 'text-right'}>Confirmação</span>
+           <div className="flex justify-between text-xs font-semibold text-[#6b6b8a] mt-2 px-1">
+              <span className={step >= 1 ? 'text-[#e8e8f0]' : ''}>Paciente</span>
+              <span className={step >= 2 ? 'text-[#e8e8f0] text-center' : 'text-center'}>Serviço</span>
+              <span className={step >= 3 ? 'text-[#e8e8f0] text-center' : 'text-center'}>Data</span>
+              <span className={step >= 4 ? 'text-[#e8e8f0] text-right' : 'text-right'}>Confirmação</span>
            </div>
         </div>
         
@@ -438,14 +439,14 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
         </div>
         
         {/* Footer actions */}
-        <DialogFooter className="border-t bg-slate-50 p-4 sm:px-6 flex justify-between gap-3 flex-row sm:justify-between">
-           <Button variant="outline" onClick={() => step > 1 ? setStep(s => s - 1) : onClose()}>
+        <DialogFooter className="border-t border-[#1e1e2e] bg-[#13131f] p-4 sm:px-6 flex justify-between gap-3 flex-row sm:justify-between">
+           <Button variant="outline" className="border-[#2d2d45] text-[#e8e8f0] bg-transparent hover:bg-[#1e1e2e] hover:text-[#e8e8f0]" onClick={() => step > 1 ? setStep(s => s - 1) : onClose()}>
              {step > 1 ? <><ArrowLeft size={16} className="mr-2"/> Voltar</> : 'Cancelar'}
            </Button>
            
            {step < 4 ? (
              <Button 
-               className="bg-blue-600 hover:bg-blue-700 text-white min-w-[120px]" 
+               className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] hover:opacity-90 text-white min-w-[120px] border-0" 
                onClick={handleNextStep}
                disabled={
                  loading ||
@@ -458,7 +459,7 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
              </Button>
            ) : (
              <Button 
-                className="bg-green-600 hover:bg-green-700 text-white min-w-[150px]"
+                className="bg-gradient-to-r from-[#00d4aa] to-[#00b38f] hover:opacity-90 text-white min-w-[150px] border-0"
                 onClick={handleFinalize}
                 disabled={loading}
              >

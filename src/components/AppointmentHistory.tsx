@@ -14,12 +14,12 @@ interface AgendamentoComTipo extends Agendamento {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  agendado: { label: 'Agendado', className: 'bg-primary text-primary-foreground' },
-  aguardando: { label: 'Aguardando', className: 'bg-warning text-warning-foreground' },
-  em_atendimento: { label: 'Em atendimento', className: 'bg-warning text-warning-foreground' },
-  concluido: { label: 'Concluído', className: 'bg-success text-success-foreground' },
-  cancelado: { label: 'Cancelado', className: 'bg-destructive text-destructive-foreground' },
-  nao_compareceu: { label: 'Não compareceu', className: 'bg-muted text-muted-foreground' },
+  agendado: { label: 'Agendado', className: 'border border-[#7c6aff] text-[#7c6aff] bg-transparent' },
+  aguardando: { label: 'Aguardando', className: 'border border-[#f59e0b] text-[#f59e0b] bg-transparent' },
+  em_atendimento: { label: 'Em atendimento', className: 'border border-[#00d4aa] text-[#00d4aa] bg-transparent animate-pulse shadow-[0_0_10px_rgba(0,212,170,0.5)]' },
+  concluido: { label: 'Concluído', className: 'border border-[#00d4aa] text-[#00d4aa] bg-transparent' },
+  cancelado: { label: 'Cancelado', className: 'border border-[#ff6b6b] text-[#ff6b6b] bg-transparent' },
+  nao_compareceu: { label: 'Não compareceu', className: 'border border-[#6b6b8a] text-[#6b6b8a] bg-transparent' },
 };
 
 export const AppointmentHistory = () => {
@@ -43,10 +43,10 @@ export const AppointmentHistory = () => {
   if (items.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <ClipboardList size={18} className="text-primary" />
+    <Card className="bg-[#13131f] border-[#2d2d45] font-[Inter]">
+      <CardHeader className="pb-3 border-b border-[#1e1e2e]">
+        <CardTitle className="flex items-center gap-2 text-lg text-[#e8e8f0] font-[Syne]">
+          <ClipboardList size={18} className="text-[#7c6aff]" />
           Últimos agendamentos
         </CardTitle>
       </CardHeader>
@@ -56,18 +56,18 @@ export const AppointmentHistory = () => {
           return (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-lg border p-3"
+              className="flex items-center justify-between rounded-lg border border-[#1e1e2e] p-3 hover:bg-[#1e1e2e] transition-colors"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary text-sm">
+                  <span className="font-bold text-[#7c6aff] text-sm">
                     {item.numero_senha || '---'}
                   </span>
-                  <span className="truncate text-sm text-foreground">
+                  <span className="truncate text-sm text-[#e8e8f0]">
                     {item.tipos_atendimento?.nome || 'Atendimento'}
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
+                <p className="mt-0.5 text-xs text-[#6b6b8a]">
                   {format(new Date(item.data_agendamento + 'T00:00:00'), 'dd/MM/yyyy')} às{' '}
                   {item.hora_agendamento.slice(0, 5)}
                 </p>

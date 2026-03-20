@@ -67,10 +67,10 @@ export const NotificationPanel = () => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" title="Notificações">
+        <Button variant="ghost" size="icon" className="relative text-[#e8e8f0] hover:bg-[#1e1e2e]" title="Notificações">
           <Bell size={18} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7c6aff] px-1 text-[10px] font-bold text-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}

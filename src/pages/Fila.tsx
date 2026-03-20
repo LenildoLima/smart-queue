@@ -215,13 +215,13 @@ export default function Fila() {
 
   return (
     <AppLayout>
-      <div className="container max-w-4xl py-8 min-h-[calc(100vh-4rem)] space-y-6 animate-fade-in bg-slate-50/50">
+      <div className="container max-w-4xl py-8 min-h-[calc(100vh-4rem)] space-y-6 animate-fade-in bg-transparent font-[Inter]">
         
         {/* Cabecalho Date-Time */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Minha Posição na Fila</h1>
-            <p className="text-sm font-medium text-slate-500 mt-1 capitalize flex items-center gap-2">
+            <h1 className="text-3xl font-extrabold text-[#e8e8f0] tracking-tight font-[Syne]">Minha Posição na Fila</h1>
+            <p className="text-sm font-medium text-[#6b6b8a] mt-1 capitalize flex items-center gap-2">
               <CalendarDays size={16} />
               {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })} 
               <span className="mx-2">•</span> 
@@ -238,10 +238,10 @@ export default function Fila() {
             
             {/* CARD PRINCIPAL (ATOR) */}
             {agendamento ? (
-              <Card className="rounded-2xl shadow-xl shadow-blue-900/5 border-blue-100 overflow-hidden bg-white">
+              <Card className="rounded-2xl shadow-lg border-[#2d2d45] overflow-hidden bg-[#13131f]">
                 {/* Highlight banner para 'em_atendimento' */}
                 {agendamento.status === 'em_atendimento' && (
-                  <div className="bg-amber-500 text-white p-4 font-bold flex items-center justify-center gap-2 animate-pulse rounded-t-2xl">
+                  <div className="bg-[#00d4aa]/15 text-[#00d4aa] p-4 font-bold flex items-center justify-center gap-2 animate-pulse rounded-t-2xl border-b border-[#00d4aa]/30">
                     <AlertCircle size={22} />
                     🔔 É a sua vez! Dirija-se ao atendimento.
                   </div>
@@ -250,29 +250,29 @@ export default function Fila() {
                 <CardContent className="p-6 sm:p-8 flex flex-col items-center justify-center text-center space-y-8">
                   
                   <div className="flex flex-col items-center">
-                    <span className="text-sm font-bold tracking-widest text-slate-400 uppercase mb-2">Sua Senha</span>
-                    <div className="bg-slate-50 rounded-2xl px-8 py-4 border-2 border-slate-100 flex items-center gap-4">
-                      <Ticket size={32} className="text-blue-600" />
-                      <span className="text-5xl sm:text-7xl font-black text-slate-800 tracking-tighter">
+                    <span className="text-[10px] uppercase tracking-[1.5px] font-bold text-[#6b6b8a] mb-2">Sua Senha</span>
+                    <div className="bg-[#111118] rounded-2xl px-8 py-4 border-2 border-[#1e1e2e] flex items-center gap-4">
+                      <Ticket size={32} className="text-[#7c6aff]" />
+                      <span className="text-5xl sm:text-7xl font-black text-[#7c6aff] tracking-widest font-[Syne] drop-shadow-[0_0_15px_rgba(124,106,255,0.4)]">
                         {agendamento.numero_senha}
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
-                    <div className="bg-blue-50/50 rounded-xl p-5 border border-blue-100 flex flex-col items-center">
-                      <span className="text-xs font-bold text-blue-600/70 uppercase mb-1">Status</span>
-                      <div className={`mt-2 font-bold px-4 py-1.5 rounded-full text-sm inline-flex items-center gap-2
-                        ${agendamento.status === 'aguardando' ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700'}
+                    <div className="bg-[#111118] rounded-xl p-5 border border-[#2d2d45] flex flex-col items-center">
+                      <span className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px] mb-1">Status</span>
+                      <div className={`mt-2 font-bold px-4 py-1.5 rounded-full text-sm inline-flex items-center gap-2 border
+                        ${agendamento.status === 'aguardando' ? 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30' : 'bg-[#00d4aa]/10 text-[#00d4aa] border-[#00d4aa]/30'}
                       `}>
-                        {agendamento.status === 'aguardando' ? '🟡 Você está na fila' : '🟠 É a sua vez!'}
+                        {agendamento.status === 'aguardando' ? '🟡 Você está na fila' : '🟢 É a sua vez!'}
                       </div>
                     </div>
                     
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col items-center">
-                      <span className="text-xs font-bold text-slate-500 uppercase mb-1">Detalhes</span>
-                      <span className="font-semibold text-slate-800">{agendamento.servico}</span>
-                      <span className="text-sm text-slate-500 mt-0.5">{agendamento.hora_agendamento.substring(0,5)}</span>
+                    <div className="bg-[#111118] rounded-xl p-5 border border-[#2d2d45] flex flex-col items-center">
+                      <span className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px] mb-1">Detalhes</span>
+                      <span className="font-semibold text-[#e8e8f0] text-base">{agendamento.servico}</span>
+                      <span className="text-sm text-[#6b6b8a] mt-0.5">{agendamento.hora_agendamento.substring(0,5)}</span>
                     </div>
                   </div>
 
@@ -282,22 +282,22 @@ export default function Fila() {
                       
                       <div className="flex justify-between items-end">
                         <div className="text-left">
-                          <p className="text-sm font-semibold text-slate-500">Sua Posição na Fila</p>
-                          <p className="text-3xl font-black text-blue-600">
+                          <p className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Sua Posição na Fila</p>
+                          <p className="text-3xl font-black text-[#e8e8f0] font-[Syne]">
                             {filaInfo.pessoasRestantes + 1}º
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-slate-500">Estimativa</p>
-                          <p className="font-bold text-slate-700">
+                          <p className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Estimativa</p>
+                          <p className="font-bold text-[#e8e8f0]">
                             {previsao !== null ? `~${previsao} min` : 'Calculando...'}
                           </p>
                         </div>
                       </div>
                       
                       <div className="space-y-1">
-                        <Progress value={progressBarValue} className="h-3" />
-                        <p className="text-xs text-center text-slate-400 font-medium">
+                        <Progress value={progressBarValue} className="h-3 bg-[#1e1e2e] [&>div]:bg-gradient-to-r [&>div]:from-[#7c6aff] [&>div]:to-[#00d4aa]" />
+                        <p className="text-[10px] uppercase tracking-[1.5px] text-center text-[#6b6b8a] font-bold mt-2">
                           Progresso de Atendimento
                         </p>
                       </div>
@@ -309,18 +309,18 @@ export default function Fila() {
               </Card>
             ) : (
               /* CARD VAZIO */
-              <Card className="rounded-2xl shadow-sm border-slate-200 overflow-hidden bg-white">
+              <Card className="rounded-2xl shadow-sm border-[#2d2d45] overflow-hidden bg-[#13131f] border-dashed">
                 <CardContent className="p-12 flex flex-col items-center text-center space-y-4">
-                  <div className="bg-slate-50 p-6 rounded-full">
-                    <Clock size={48} className="text-slate-300" />
+                  <div className="bg-[#7c6aff]/10 p-6 rounded-full shadow-[0_0_20px_rgba(124,106,255,0.2)]">
+                    <Clock size={48} className="text-[#7c6aff]" />
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-800">Você não está na fila no momento</h2>
-                  <p className="text-slate-500 max-w-sm">
+                  <h2 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Você não está na fila no momento</h2>
+                  <p className="text-[#6b6b8a] max-w-sm">
                     Faça um agendamento para entrar na fila e iniciar seu atendimento no momento agendado.
                   </p>
                   <Button 
                     onClick={() => navigate('/agendar')} 
-                    className="mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 shadow-md"
+                    className="mt-6 bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] hover:opacity-90 text-white rounded-full px-8 shadow-md border-0"
                   >
                     Agendar agora
                   </Button>
@@ -330,35 +330,35 @@ export default function Fila() {
 
             {/* HISTÓRICO */}
             <div className="pt-6">
-              <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <History className="text-slate-400" size={20} />
+              <h3 className="text-xl font-bold text-[#e8e8f0] mb-4 flex items-center gap-2 font-[Syne]">
+                <History className="text-[#7c6aff]" size={20} />
                 Histórico de Atendimentos
               </h3>
               
               {historico.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {historico.map(h => (
-                    <Card key={h.id} className="rounded-xl shadow-sm border-slate-200 bg-white hover:border-blue-100 transition-colors">
-                      <CardHeader className="pb-2">
+                    <Card key={h.id} className="rounded-xl shadow-sm border-[#2d2d45] bg-[#13131f] hover:border-[#7c6aff] transition-colors">
+                      <CardHeader className="pb-2 border-b border-[#1e1e2e]">
                         <div className="flex justify-between items-start">
-                          <CardTitle className="text-sm font-semibold text-slate-700">
+                          <CardTitle className="text-[11px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">
                             {format(new Date(h.data_atendimento + 'T00:00:00'), 'dd/MM/yyyy')}
                           </CardTitle>
                           {h.status === 'concluido' ? (
-                            <CheckCircle2 size={16} className="text-green-500" />
+                            <CheckCircle2 size={16} className="text-[#00d4aa]" />
                           ) : (
-                            <Activity size={16} className="text-slate-400" />
+                            <Activity size={16} className="text-[#6b6b8a]" />
                           )}
                         </div>
                       </CardHeader>
-                      <CardContent>
-                        <p className="font-bold text-slate-800">{h.servico}</p>
+                      <CardContent className="pt-3">
+                        <p className="font-bold text-[#e8e8f0]">{h.servico}</p>
                         <div className="flex flex-col gap-1 mt-3">
-                          <span className="text-xs text-slate-500">
-                            Espera: <span className="font-semibold text-slate-700">{h.tempo_espera_minutos !== null ? `${h.tempo_espera_minutos} min` : '-'}</span>
+                          <span className="text-[10px] text-[#6b6b8a] uppercase tracking-[1.5px] font-bold">
+                            Espera: <span className="font-semibold text-[#e8e8f0]">{h.tempo_espera_minutos !== null ? `${h.tempo_espera_minutos} min` : '-'}</span>
                           </span>
-                          <span className="text-xs text-slate-500">
-                            Status: <span className="font-semibold capitalize text-slate-700">{h.status.replace('_', ' ')}</span>
+                          <span className="text-[10px] text-[#6b6b8a] uppercase tracking-[1.5px] font-bold">
+                            Status: <span className="font-semibold capitalize text-[#e8e8f0]">{h.status.replace('_', ' ')}</span>
                           </span>
                         </div>
                       </CardContent>
@@ -366,8 +366,8 @@ export default function Fila() {
                   ))}
                 </div>
               ) : (
-                <Card className="rounded-xl border-dashed border-2 border-slate-200 bg-transparent">
-                  <CardContent className="p-8 text-center text-slate-500">
+                <Card className="rounded-xl border-dashed border-[#2d2d45] bg-transparent">
+                  <CardContent className="p-8 text-center text-[#6b6b8a] font-medium">
                     Nenhum atendimento finalizado encontrado no seu histórico recente.
                   </CardContent>
                 </Card>

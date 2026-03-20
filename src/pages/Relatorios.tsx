@@ -19,12 +19,12 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTo
 type TipoRelatorio = 'diario' | 'mensal';
 
 const COLORS = {
-  agendado: '#2563EB',
-  aguardando: '#F59E0B',
-  concluido: '#22C55E',
-  cancelado: '#EF4444',
-  nao_compareceu: '#94A3B8',
-  em_atendimento: '#0ea5e9' // Added fallback for this status
+  agendado: '#7c6aff',
+  aguardando: '#f59e0b',
+  em_atendimento: '#00d4aa',
+  concluido: '#00d4aa',
+  cancelado: '#ff6b6b',
+  nao_compareceu: '#f59e0b'
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -270,48 +270,50 @@ export default function Relatorios() {
   return (
     <AppLayout>
       <DashboardHeader isAdmin={isAdmin} />
-      <main className="container max-w-6xl py-6 space-y-6 animate-fade-in bg-slate-50 min-h-[calc(100vh-4rem)] rounded-tl-3xl">
+      <main className="container max-w-6xl py-6 space-y-6 animate-fade-in min-h-[calc(100vh-4rem)]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Relatórios Gerenciais</h1>
-            <p className="text-sm text-slate-500 mt-1">Acompanhe as métricas de atendimentos da sua unidade.</p>
+            <h1 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Relatórios Gerenciais</h1>
+            <p className="text-sm text-[#6b6b8a] mt-1">Acompanhe as métricas de atendimentos da sua unidade.</p>
           </div>
         </div>
         
         {/* 1. FILTROS NO TOPO */}
-        <Card className="rounded-xl shadow-sm border-slate-200">
+        <Card className="rounded-xl shadow-none border-[#2d2d45] bg-[#13131f]">
           <CardContent className="p-4 sm:p-6 flex flex-col md:flex-row items-end gap-4">
             <div className="w-full md:w-auto flex-1 space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Tipo de Relatório</label>
+              <label className="text-sm font-semibold text-[#6b6b8a] uppercase tracking-[1px] text-[11px]">Tipo de Relatório</label>
               <Select value={tipoOpc} onValueChange={(v: TipoRelatorio) => setTipoOpc(v)}>
-                <SelectTrigger className="w-full sm:w-[200px] h-11 bg-white">
+                <SelectTrigger className="w-full sm:w-[200px] h-11 bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="diario">Diário</SelectItem>
-                  <SelectItem value="mensal">Mensal</SelectItem>
+                <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                  <SelectItem value="diario" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Diário</SelectItem>
+                  <SelectItem value="mensal" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Mensal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             {tipoOpc === 'diario' ? (
               <div className="w-full md:w-auto flex-1 space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Data do Relatório</label>
+                <label className="text-sm font-semibold text-[#6b6b8a] uppercase tracking-[1px] text-[11px]">Data do Relatório</label>
                 <Input 
                   type="date" 
                   value={dataDia} 
                   onChange={(e) => setDataDia(e.target.value)} 
-                  className="h-11 bg-white"
+                  className="h-11 bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
+                  style={{ colorScheme: 'dark' }}
                 />
               </div>
             ) : (
               <div className="w-full md:w-auto flex-1 space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Mês e Ano</label>
+                <label className="text-sm font-semibold text-[#6b6b8a] uppercase tracking-[1px] text-[11px]">Mês e Ano</label>
                 <Input 
                   type="month" 
                   value={mesAno} 
                   onChange={(e) => setMesAno(e.target.value)} 
-                  className="h-11 bg-white"
+                  className="h-11 bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
+                  style={{ colorScheme: 'dark' }}
                 />
               </div>
             )}
@@ -319,7 +321,7 @@ export default function Relatorios() {
             <Button 
               onClick={handleGerarRelatorio} 
               disabled={fetchingData}
-              className="w-full md:w-auto h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-8 shadow-sm"
+              className="w-full md:w-auto h-11 bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] hover:opacity-90 text-white rounded-lg px-8 border-0 shadow-none"
             >
               {fetchingData ? <LoadingSpinner size={18} /> : 'Gerar Relatório'}
             </Button>
@@ -333,54 +335,54 @@ export default function Relatorios() {
             
             {/* 2. CARDS DE RESUMO */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <Card className="rounded-xl shadow-sm overflow-hidden border-slate-200 bg-white">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#13131f]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-3xl font-bold text-slate-800">{resumo.total}</span>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Agendamentos</span>
+                  <span className="text-3xl font-bold text-[#e8e8f0] font-[Syne]">{resumo.total}</span>
+                  <span className="text-[10px] font-semibold text-[#6b6b8a] uppercase tracking-[1.5px]">Agendamentos</span>
                 </CardContent>
               </Card>
-              <Card className="rounded-xl shadow-sm overflow-hidden border-slate-200 bg-white">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#13131f]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-3xl font-bold text-green-500">{resumo.concluidos}</span>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Concluídos</span>
+                  <span className="text-3xl font-bold text-[#00d4aa] font-[Syne]">{resumo.concluidos}</span>
+                  <span className="text-[10px] font-semibold text-[#6b6b8a] uppercase tracking-[1.5px]">Concluídos</span>
                 </CardContent>
               </Card>
-              <Card className="rounded-xl shadow-sm overflow-hidden border-slate-200 bg-white">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#13131f]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-3xl font-bold text-red-500">{resumo.cancelados}</span>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cancelados</span>
+                  <span className="text-3xl font-bold text-[#ff6b6b] font-[Syne]">{resumo.cancelados}</span>
+                  <span className="text-[10px] font-semibold text-[#6b6b8a] uppercase tracking-[1.5px]">Cancelados</span>
                 </CardContent>
               </Card>
-              <Card className="rounded-xl shadow-sm overflow-hidden border-slate-200 bg-white">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#13131f]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-3xl font-bold text-amber-500">{resumo.naoCompareceu}</span>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Não Compareceu</span>
+                  <span className="text-3xl font-bold text-[#f59e0b] font-[Syne]">{resumo.naoCompareceu}</span>
+                  <span className="text-[10px] font-semibold text-[#6b6b8a] uppercase tracking-[1.5px]">Não Compareceu</span>
                 </CardContent>
               </Card>
-              <Card className="rounded-xl shadow-sm overflow-hidden border-blue-100 bg-blue-50/50">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#111118]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-3xl font-black text-blue-600">{resumo.taxaComparecimento}%</span>
-                  <span className="text-xs font-bold text-blue-800/70 uppercase tracking-wider">Tx. Comparecimento</span>
+                  <span className="text-3xl font-black text-[#7c6aff] font-[Syne]">{resumo.taxaComparecimento}%</span>
+                  <span className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Tx. Comparecimento</span>
                 </CardContent>
               </Card>
-              <Card className="rounded-xl shadow-sm overflow-hidden border-slate-200 bg-white">
+              <Card className="rounded-xl shadow-none overflow-hidden border-[#2d2d45] bg-[#13131f]">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-1">
-                  <span className="text-2xl font-bold text-slate-700">{resumo.mediaEspera} <span className="text-sm font-normal">min</span></span>
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Espera Média</span>
+                  <span className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">{resumo.mediaEspera} <span className="text-sm font-normal font-[Inter] text-[#6b6b8a]">min</span></span>
+                  <span className="text-[10px] font-semibold text-[#6b6b8a] uppercase tracking-[1.5px]">Espera Média</span>
                 </CardContent>
               </Card>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 3. GRÁFICO DE PIZZA */}
-              <Card className="rounded-xl shadow-sm border-slate-200">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                    <PieChartIcon size={18} className="text-blue-600" />
+              <Card className="rounded-xl shadow-none border-[#2d2d45] bg-[#13131f]">
+                <CardHeader className="border-b border-[#1e1e2e] pb-4">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#e8e8f0]">
+                    <PieChartIcon size={18} className="text-[#7c6aff]" />
                     Atendimentos por Status
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-72">
+                <CardContent className="h-72 mt-4">
                   {pizzaData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -390,41 +392,49 @@ export default function Relatorios() {
                           outerRadius={80}
                           paddingAngle={5}
                           dataKey="value"
+                          stroke="none"
                         >
                           {pizzaData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <RechartsTooltip />
-                        <Legend verticalAlign="bottom" height={36} />
+                        <RechartsTooltip 
+                          contentStyle={{ backgroundColor: '#111118', borderColor: '#2d2d45', color: '#e8e8f0' }}
+                          itemStyle={{ color: '#e8e8f0' }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#6b6b8a', fontSize: '12px' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-slate-400">Sem dados para o período</div>
+                    <div className="h-full flex items-center justify-center text-[#6b6b8a]">Sem dados para o período</div>
                   )}
                 </CardContent>
               </Card>
 
               {/* 4. GRÁFICO DE BARRAS (só mensal) */}
-              <Card className={`rounded-xl shadow-sm border-slate-200 ${tipoOpc === 'diario' ? 'opacity-50 pointer-events-none' : ''}`}>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                    <Activity size={18} className="text-blue-600" />
+              <Card className={`rounded-xl shadow-none border-[#2d2d45] bg-[#13131f] ${tipoOpc === 'diario' ? 'opacity-50 pointer-events-none' : ''}`}>
+                <CardHeader className="border-b border-[#1e1e2e] pb-4">
+                  <CardTitle className="text-base flex items-center gap-2 text-[#e8e8f0]">
+                    <Activity size={18} className="text-[#00d4aa]" />
                     Agendamentos por Dia
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-72">
+                <CardContent className="h-72 mt-4">
                   {tipoOpc === 'mensal' && barData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12}} />
-                        <RechartsTooltip cursor={{fill: '#f1f5f9'}} />
-                        <Bar dataKey="count" fill="#2563EB" radius={[4, 4, 0, 0]} name="Agendamentos" />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b6b8a'}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b6b8a'}} />
+                        <RechartsTooltip 
+                          cursor={{fill: '#1e1e2e'}} 
+                          contentStyle={{ backgroundColor: '#111118', borderColor: '#2d2d45', color: '#e8e8f0' }}
+                          itemStyle={{ color: '#00d4aa' }}
+                        />
+                        <Bar dataKey="count" fill="#00d4aa" radius={[4, 4, 0, 0]} name="Agendamentos" />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-slate-400">
+                    <div className="h-full flex items-center justify-center text-[#6b6b8a]">
                       {tipoOpc === 'diario' ? 'Disponível apenas no Relatório Mensal' : 'Sem dados para o período'}
                     </div>
                   )}
@@ -433,47 +443,47 @@ export default function Relatorios() {
             </div>
 
             {/* 5. TABELA DETALHADA E 6. EXPORTAR CSV */}
-            <Card className="rounded-xl shadow-sm border-slate-200 overflow-hidden">
-              <CardHeader className="border-b bg-white flex flex-row items-center justify-between py-4">
-                <CardTitle className="text-base text-slate-800">Histórico Detalhado</CardTitle>
-                <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={historico.length === 0} className="text-slate-600 border-slate-300">
+            <Card className="rounded-xl shadow-none border-[#2d2d45] bg-[#13131f] overflow-hidden">
+              <CardHeader className="border-b border-[#1e1e2e] bg-[#13131f] flex flex-row items-center justify-between py-4">
+                <CardTitle className="text-base text-[#e8e8f0]">Histórico Detalhado</CardTitle>
+                <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={historico.length === 0} className="text-[#e8e8f0] border-[#2d2d45] bg-transparent hover:bg-[#1e1e2e] hover:text-white">
                   <FileDown size={14} className="mr-2" />
                   Exportar CSV
                 </Button>
               </CardHeader>
-              <div className="overflow-x-auto bg-white">
+              <div className="overflow-x-auto bg-[#13131f]">
                 <Table>
-                  <TableHeader className="bg-slate-50">
-                    <TableRow>
-                      <TableHead className="font-semibold text-slate-600 w-[110px]">Data</TableHead>
-                      <TableHead className="font-semibold text-slate-600 w-[90px]">Senha</TableHead>
-                      <TableHead className="font-semibold text-slate-600">Paciente</TableHead>
-                      <TableHead className="font-semibold text-slate-600">Serviço</TableHead>
-                      <TableHead className="font-semibold text-slate-600 w-[100px] text-center">Espera</TableHead>
-                      <TableHead className="font-semibold text-slate-600 w-[100px] text-center">Duração</TableHead>
-                      <TableHead className="font-semibold text-slate-600 w-[130px] text-right">Status</TableHead>
+                  <TableHeader className="bg-[#111118]">
+                    <TableRow className="border-[#1e1e2e] hover:bg-transparent">
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold w-[110px] pl-6">Data</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold w-[90px]">Senha</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Paciente</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Serviço</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold w-[100px] text-center">Espera</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold w-[100px] text-center">Duração</TableHead>
+                      <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold w-[130px] text-right pr-6">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-12 text-slate-500">
+                      <TableRow className="border-[#1e1e2e]">
+                        <TableCell colSpan={7} className="text-center py-12 text-[#6b6b8a]">
                           Nenhum registro encontrado para este período.
                         </TableCell>
                       </TableRow>
                     ) : (paginatedData.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-slate-50 border-slate-100">
-                        <TableCell className="text-slate-600">{format(new Date(item.data_atendimento + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
-                        <TableCell className="font-bold text-slate-700">{item.numero_senha || '-'}</TableCell>
-                        <TableCell className="font-medium text-slate-800">{item.nome_paciente || '-'}</TableCell>
-                        <TableCell className="text-slate-600">{item.tipo_nome || '-'}</TableCell>
-                        <TableCell className="text-center text-slate-600">
+                      <TableRow key={item.id} className="hover:bg-[#1e1e2e] border-[#1e1e2e]">
+                        <TableCell className="text-[#e8e8f0] pl-6">{format(new Date(item.data_atendimento + 'T00:00:00'), 'dd/MM/yyyy')}</TableCell>
+                        <TableCell className="font-bold text-[#e8e8f0]">{item.numero_senha || '-'}</TableCell>
+                        <TableCell className="font-medium text-[#e8e8f0]">{item.nome_paciente || '-'}</TableCell>
+                        <TableCell className="text-[#6b6b8a]">{item.tipo_nome || '-'}</TableCell>
+                        <TableCell className="text-center text-[#6b6b8a]">
                           {item.tempo_espera_minutos !== null && item.tempo_espera_minutos !== undefined ? `${item.tempo_espera_minutos} min` : '-'}
                         </TableCell>
-                        <TableCell className="text-center text-slate-600">
+                        <TableCell className="text-center text-[#6b6b8a]">
                           {item.duracao_minutos !== null && item.duracao_minutos !== undefined ? `${item.duracao_minutos} min` : '-'}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right pr-6">
                           <Badge 
                             variant="outline" 
                             style={{ 
@@ -493,8 +503,8 @@ export default function Relatorios() {
               
               {/* PAGINAÇÃO */}
               {historico.length > 0 && (
-                <div className="flex items-center justify-between px-6 py-3 border-t bg-slate-50">
-                  <span className="text-sm text-slate-500">
+                <div className="flex items-center justify-between px-6 py-3 border-t border-[#1e1e2e] bg-[#111118]">
+                  <span className="text-sm text-[#6b6b8a]">
                     Mostrando {((paginaAtual - 1) * itensPorPagina) + 1} a {Math.min(paginaAtual * itensPorPagina, historico.length)} de {historico.length} registros
                   </span>
                   <div className="flex items-center gap-2">
@@ -503,11 +513,11 @@ export default function Relatorios() {
                       size="sm" 
                       onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
                       disabled={paginaAtual === 1}
-                      className="h-8 w-8 p-0 border-slate-300"
+                      className="h-8 w-8 p-0 border-[#2d2d45] text-[#e8e8f0] bg-transparent hover:bg-[#1e1e2e] disabled:opacity-50 disabled:bg-transparent"
                     >
                       <ChevronLeft size={16} />
                     </Button>
-                    <span className="text-sm font-medium text-slate-700 mx-2">
+                    <span className="text-sm font-medium text-[#e8e8f0] mx-2">
                       Página {paginaAtual} de {totalPaginas}
                     </span>
                     <Button 
@@ -515,7 +525,7 @@ export default function Relatorios() {
                       size="sm" 
                       onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
                       disabled={paginaAtual === totalPaginas}
-                      className="h-8 w-8 p-0 border-slate-300"
+                      className="h-8 w-8 p-0 border-[#2d2d45] text-[#e8e8f0] bg-transparent hover:bg-[#1e1e2e] disabled:opacity-50 disabled:bg-transparent"
                     >
                       <ChevronRight size={16} />
                     </Button>

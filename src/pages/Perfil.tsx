@@ -45,9 +45,9 @@ const passwordStrength = (p: string): { level: number; label: string; color: str
   if (/[A-Z]/.test(p)) score++;
   if (/[0-9]/.test(p)) score++;
   if (/[^A-Za-z0-9]/.test(p)) score++;
-  if (score <= 1) return { level: 1, label: 'Fraca', color: 'bg-destructive' };
-  if (score <= 2) return { level: 2, label: 'Média', color: 'bg-warning' };
-  return { level: 3, label: 'Forte', color: 'bg-success' };
+  if (score <= 1) return { level: 1, label: 'Fraca', color: 'bg-[#ff6b6b]' };
+  if (score <= 2) return { level: 2, label: 'Média', color: 'bg-[#f59e0b]' };
+  return { level: 3, label: 'Forte', color: 'bg-[#00d4aa]' };
 };
 
 const Perfil = () => {
@@ -216,29 +216,31 @@ const Perfil = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-transparent font-[Inter]">
       {/* Header */}
       <DashboardHeader isAdmin={perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador'} />
 
       <main className="container max-w-2xl py-6 space-y-6 animate-fade-in">
         {/* Avatar Section */}
-        <Card>
+        <Card className="bg-[#13131f] border-[#2d2d45]">
           <CardContent className="p-6">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-30 h-30 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20">
-                {avatarPreview || perfil?.url_avatar ? (
-                  <img src={avatarPreview || perfil?.url_avatar} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <UserAvatar src={null} name={nomeCompleto} size={120} />
-                )}
+              <div className="relative mb-4 group cursor-pointer inline-block rounded-full bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] p-1">
+                <div className="w-32 h-32 rounded-full bg-[#111118] flex items-center justify-center overflow-hidden border-4 border-[#13131f]">
+                  {avatarPreview || perfil?.url_avatar ? (
+                    <img src={avatarPreview || perfil?.url_avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserAvatar src={null} name={nomeCompleto} size={120} />
+                  )}
+                </div>
               </div>
               <div className="flex gap-3">
                 <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileChange} />
-                <Button type="button" variant="outline" size="sm" onClick={() => cameraRef.current?.click()}>
+                <Button type="button" variant="outline" size="sm" onClick={() => cameraRef.current?.click()} className="bg-transparent border-[#2d2d45] text-[#e8e8f0] hover:border-[#7c6aff] hover:text-[#7c6aff]">
                   <Camera size={16} className="mr-1" /> Tirar foto
                 </Button>
                 <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                <Button type="button" variant="outline" size="sm" onClick={() => galleryRef.current?.click()}>
+                <Button type="button" variant="outline" size="sm" onClick={() => galleryRef.current?.click()} className="bg-transparent border-[#2d2d45] text-[#e8e8f0] hover:border-[#7c6aff] hover:text-[#7c6aff]">
                   <ImageIcon size={16} className="mr-1" /> Alterar foto
                 </Button>
               </div>
@@ -247,46 +249,46 @@ const Perfil = () => {
         </Card>
 
         {/* Personal Data */}
-        <Card>
+        <Card className="bg-[#13131f] border-[#2d2d45]">
           <CardHeader>
-            <CardTitle>Dados Pessoais</CardTitle>
+            <CardTitle className="text-xl font-bold text-[#e8e8f0] font-[Syne]">Dados Pessoais</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Nome completo *</Label>
-              <Input value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} placeholder="Seu nome completo" />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Nome completo *</Label>
+              <Input value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} placeholder="Seu nome completo" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
             </div>
             <div className="space-y-2">
-              <Label>E-mail</Label>
-              <Input value={email} readOnly className="bg-muted" />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">E-mail</Label>
+              <Input value={email} readOnly className="bg-[#111118]/50 border-[#2d2d45] cursor-not-allowed text-[#6b6b8a]" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>CPF</Label>
-                <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="000.000.000-00" />
+                <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">CPF</Label>
+                <Input value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} placeholder="000.000.000-00" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
               </div>
               <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Input value={telefone} onChange={(e) => setTelefone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" />
+                <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Telefone</Label>
+                <Input value={telefone} onChange={(e) => setTelefone(formatPhone(e.target.value))} placeholder="(00) 00000-0000" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Data de nascimento</Label>
-              <Input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Data de nascimento</Label>
+              <Input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]" />
             </div>
             <div className="space-y-2">
-              <Label>Grupo de prioridade</Label>
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Grupo de prioridade</Label>
               <select
                 value={grupoPrioridade}
                 onChange={(e) => setGrupoPrioridade(e.target.value)}
-                className="w-full h-11 rounded-lg border bg-background px-3 text-sm text-foreground"
+                className="w-full h-11 rounded-md border border-[#2d2d45] bg-[#111118] px-3 text-sm text-[#e8e8f0] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#7c6aff]"
               >
                 {PRIORITY_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </div>
-            <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+            <Button onClick={handleSaveProfile} disabled={saving} className="w-full bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white border-0 hover:opacity-90">
               <Save size={16} className="mr-1" />
               {saving ? 'Salvando...' : 'Salvar alterações'}
             </Button>
@@ -294,37 +296,37 @@ const Perfil = () => {
         </Card>
 
         {/* Password Change */}
-        <Card>
+        <Card className="bg-[#13131f] border-[#2d2d45]">
           <CardHeader>
-            <CardTitle>Alterar Senha</CardTitle>
+            <CardTitle className="text-xl font-bold text-[#e8e8f0] font-[Syne]">Alterar Senha</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Senha atual</Label>
-              <Input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} placeholder="••••••••" />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Senha atual</Label>
+              <Input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} placeholder="••••••••" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
             </div>
             <div className="space-y-2">
-              <Label>Nova senha *</Label>
-              <Input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••••" />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Nova senha *</Label>
+              <Input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••••" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
               {novaSenha && (
                 <div className="space-y-1">
                   <div className="flex gap-1">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= strength.level ? strength.color : 'bg-muted'}`} />
+                      <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= strength.level ? strength.color : 'bg-[#1e1e2e]'}`} />
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">Força: {strength.label}</p>
+                  <p className="text-xs text-[#6b6b8a]">Força: <span className="text-[#e8e8f0] font-medium">{strength.label}</span></p>
                 </div>
               )}
             </div>
             <div className="space-y-2">
-              <Label>Confirmar nova senha *</Label>
-              <Input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} placeholder="••••••••" />
+              <Label className="text-[10px] font-bold text-[#6b6b8a] uppercase tracking-[1.5px]">Confirmar nova senha *</Label>
+              <Input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} placeholder="••••••••" className="bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff] placeholder:text-[#6b6b8a]" />
               {confirmarSenha && novaSenha !== confirmarSenha && (
-                <p className="text-xs text-destructive">As senhas não coincidem</p>
+                <p className="text-xs text-[#ff6b6b]">As senhas não coincidem</p>
               )}
             </div>
-            <Button onClick={handleChangePassword} disabled={changingPassword} variant="outline" className="w-full">
+            <Button onClick={handleChangePassword} disabled={changingPassword} variant="outline" className="w-full bg-transparent border-[#2d2d45] text-[#e8e8f0] hover:border-[#7c6aff] hover:text-[#7c6aff]">
               <Lock size={16} className="mr-1" />
               {changingPassword ? 'Alterando...' : 'Alterar senha'}
             </Button>

@@ -92,21 +92,21 @@ interface AgendamentoItem {
 }
 
 const prioridadeConfig: Record<string, { label: string; className: string }> = {
-  normal: { label: 'Normal', className: 'bg-muted text-muted-foreground' },
-  idoso: { label: 'Idoso', className: 'bg-amber-100 text-amber-800' },
-  gestante: { label: 'Gestante', className: 'bg-pink-100 text-pink-800' },
-  deficiente: { label: 'PCD', className: 'bg-purple-100 text-purple-800' },
-  lactante: { label: 'Lactante', className: 'bg-rose-100 text-rose-800' },
-  obeso: { label: 'Obeso', className: 'bg-orange-100 text-orange-800' },
+  normal: { label: 'Normal', className: 'bg-[#111118] text-[#6b6b8a] border-[#2d2d45]' },
+  idoso: { label: 'Idoso', className: 'bg-[#7c6aff]/10 text-[#7c6aff] border-[#7c6aff]/20' },
+  gestante: { label: 'Gestante', className: 'bg-[#00d4aa]/10 text-[#00d4aa] border-[#00d4aa]/20' },
+  deficiente: { label: 'PCD', className: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20' },
+  lactante: { label: 'Lactante', className: 'bg-[#ff6b6b]/10 text-[#ff6b6b] border-[#ff6b6b]/20' },
+  obeso: { label: 'Obeso', className: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20' },
 };
 
 const statusBadgeConfig: Record<string, { label: string; className: string }> = {
-  agendado: { label: 'Agendado', className: 'bg-blue-100 text-blue-800 hover:bg-blue-200' },
-  aguardando: { label: 'Aguardando', className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' },
-  em_atendimento: { label: 'Em Atendimento', className: 'bg-purple-100 text-purple-800 hover:bg-purple-200' },
-  concluido: { label: 'Concluído', className: 'bg-green-100 text-green-800 hover:bg-green-200' },
-  cancelado: { label: 'Cancelado', className: 'bg-red-100 text-red-800 hover:bg-red-200' },
-  nao_compareceu: { label: 'Não Compareceu', className: 'bg-orange-100 text-orange-800 hover:bg-orange-200' }
+  agendado: { label: 'Agendado', className: 'bg-[#7c6aff]/10 text-[#7c6aff] border border-[#7c6aff]/30' },
+  aguardando: { label: 'Aguardando', className: 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30' },
+  em_atendimento: { label: 'Em Atendimento', className: 'bg-[#00d4aa]/10 text-[#00d4aa] border border-[#00d4aa]/30' },
+  concluido: { label: 'Concluído', className: 'bg-[#00d4aa]/10 text-[#00d4aa] border border-[#00d4aa]/30' },
+  cancelado: { label: 'Cancelado', className: 'bg-[#ff6b6b]/10 text-[#ff6b6b] border border-[#ff6b6b]/30' },
+  nao_compareceu: { label: 'Não Compareceu', className: 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30' }
 };
 
 const isDataHoraPassada = (data: string, hora: string) => {
@@ -552,10 +552,10 @@ const Admin = () => {
   const hoje = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR });
 
   const summaryCards = [
-    { label: 'Agendados hoje', value: resumo.agendados, icon: CalendarCheck, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Em espera', value: resumo.aguardando, icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
-    { label: 'Concluídos', value: resumo.concluidos, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
-    { label: 'Cancelados', value: resumo.cancelados, icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
+    { label: 'Agendados hoje', value: resumo.agendados, icon: CalendarCheck, color: 'text-[#7c6aff]', bg: 'bg-[#7c6aff]/10' },
+    { label: 'Em espera', value: resumo.aguardando, icon: Clock, color: 'text-[#f59e0b]', bg: 'bg-[#f59e0b]/10' },
+    { label: 'Concluídos', value: resumo.concluidos, icon: CheckCircle2, color: 'text-[#00d4aa]', bg: 'bg-[#00d4aa]/10' },
+    { label: 'Cancelados', value: resumo.cancelados, icon: XCircle, color: 'text-[#ff6b6b]', bg: 'bg-[#ff6b6b]/10' },
   ];
 
   const dateStrHoje = format(new Date(), 'yyyy-MM-dd');
@@ -589,43 +589,61 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0a0a0f] font-[Inter] text-[#e8e8f0]">
+      {/* Background Elements */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundImage: 'linear-gradient(rgba(124,106,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,255,0.03) 1px, transparent 1px)',
+        backgroundSize: '48px 48px',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+      <div style={{
+        position: 'fixed', width: '600px', height: '600px', background: 'rgba(124,106,255,0.08)', borderRadius: '50%',
+        filter: 'blur(120px)', top: '-200px', left: '-100px', pointerEvents: 'none', zIndex: 0
+      }} />
+      <div style={{
+        position: 'fixed', width: '400px', height: '400px', background: 'rgba(0,212,170,0.06)', borderRadius: '50%',
+        filter: 'blur(100px)', bottom: '-100px', right: '-100px', pointerEvents: 'none', zIndex: 0
+      }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-[#1e1e2e] bg-[#111118]/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
+            <Badge className="bg-[#7c6aff]/10 text-[#7c6aff] border-[#7c6aff]/20 hover:bg-[#7c6aff]/20">
               <Shield size={12} className="mr-1" />
               Painel Admin
             </Badge>
           </div>
           <div className="flex items-center gap-2">
             <NotificationPanel />
-            <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair">
+            <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair" className="text-[#e8e8f0] hover:bg-[#1e1e2e] hover:text-[#7c6aff]">
               <LogOut size={18} />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container max-w-5xl py-6 space-y-6 animate-fade-in">
+      <main className="container max-w-5xl py-6 space-y-6 animate-fade-in relative z-10">
         {/* Date */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Painel Administrativo</h1>
-          <p className="text-sm text-muted-foreground capitalize">{hoje}</p>
+          <h1 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Painel Administrativo</h1>
+          <p className="text-sm text-[#6b6b8a] capitalize">{hoje}</p>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {summaryCards.map((card) => (
-            <Card key={card.label}>
+            <Card key={card.label} className="bg-[#13131f] border-[#2d2d45]">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={`rounded-lg p-2.5 ${card.bg}`}>
                   <card.icon size={22} className={card.color} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{card.value}</p>
-                  <p className="text-xs text-muted-foreground">{card.label}</p>
+                  <p className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">{card.value}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[1px] text-[#6b6b8a]">{card.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -633,19 +651,19 @@ const Admin = () => {
         </div>
 
         {/* Agendamentos */}
-        <Card>
-          <CardHeader className="pb-3 border-b border-border/50">
+        <Card className="bg-[#13131f] border-[#2d2d45]">
+          <CardHeader className="pb-3 border-b border-[#1e1e2e]">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <CalendarCheck size={20} className="text-primary" />
+                <CardTitle className="text-lg flex items-center gap-2 text-[#e8e8f0]">
+                  <CalendarCheck size={20} className="text-[#7c6aff]" />
                   Agendamentos
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50 bg-white shadow-sm h-8"
+                    className="border-[#7c6aff] text-[#7c6aff] hover:bg-[#7c6aff]/10 bg-transparent shadow-sm h-8"
                     onClick={() => setIsCadastroUsuarioOpen(true)}
                   >
                     <UserPlus size={16} className="mr-1.5" />
@@ -653,7 +671,7 @@ const Admin = () => {
                   </Button>
                   <Button 
                     size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm h-8"
+                    className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white hover:opacity-90 border-0 shadow-sm h-8"
                     onClick={() => setIsNovoAtendimentoOpen(true)}
                   >
                     <Plus size={16} className="mr-1.5" />
@@ -664,38 +682,38 @@ const Admin = () => {
               
               <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                 <div className="relative w-full sm:w-64">
-                  <Search size={16} className="absolute left-2.5 top-2.5 text-muted-foreground" />
+                  <Search size={16} className="absolute left-2.5 top-2.5 text-[#6b6b8a]" />
                   <Input 
                     placeholder="Buscar paciente ou senha..." 
-                    className="pl-9 bg-background"
+                    className="pl-9 bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
                     value={filtroAgtBusca}
                     onChange={(e) => setFiltroAgtBusca(e.target.value)}
                   />
                 </div>
                 
                 <Select value={filtroAgtData} onValueChange={setFiltroAgtData}>
-                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                  <SelectTrigger className="w-full sm:w-[150px] bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                     <SelectValue placeholder="Data" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todos">Todas as Datas</SelectItem>
-                    <SelectItem value="Hoje">Hoje</SelectItem>
-                    <SelectItem value="Próximos 7 dias">Próximos 7 dias</SelectItem>
-                    <SelectItem value="Este mês">Este mês</SelectItem>
+                  <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                    <SelectItem value="Todos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Todas as Datas</SelectItem>
+                    <SelectItem value="Hoje" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Hoje</SelectItem>
+                    <SelectItem value="Próximos 7 dias" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Próximos 7 dias</SelectItem>
+                    <SelectItem value="Este mês" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Este mês</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={filtroAgtStatus} onValueChange={setFiltroAgtStatus}>
-                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                  <SelectTrigger className="w-full sm:w-[150px] bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todos">Todos Status</SelectItem>
-                    <SelectItem value="agendado">Agendado</SelectItem>
-                    <SelectItem value="aguardando">Na Fila</SelectItem>
-                    <SelectItem value="em_atendimento">Em Atendimento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                  <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                    <SelectItem value="Todos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Todos Status</SelectItem>
+                    <SelectItem value="agendado" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Agendado</SelectItem>
+                    <SelectItem value="aguardando" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Na Fila</SelectItem>
+                    <SelectItem value="em_atendimento" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Em Atendimento</SelectItem>
+                    <SelectItem value="concluido" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Concluído</SelectItem>
+                    <SelectItem value="cancelado" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -704,20 +722,20 @@ const Admin = () => {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="w-[120px] pl-6">Data</TableHead>
-                    <TableHead className="w-[100px]">Horário</TableHead>
-                    <TableHead>Senha / Paciente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right pr-6">Ações</TableHead>
+                <TableHeader className="bg-[#111118]">
+                  <TableRow className="border-[#1e1e2e] hover:bg-transparent">
+                    <TableHead className="w-[120px] pl-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Data</TableHead>
+                    <TableHead className="w-[100px] text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Horário</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Senha / Paciente</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Serviço</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Status</TableHead>
+                    <TableHead className="text-right pr-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {agendamentosFilter.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    <TableRow className="border-[#1e1e2e]">
+                      <TableCell colSpan={6} className="h-24 text-center text-[#6b6b8a]">
                         Nenhum agendamento encontrado com os filtros atuais.
                       </TableCell>
                     </TableRow>
@@ -729,27 +747,27 @@ const Admin = () => {
                       const formatedDate = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : ag.data_agendamento;
                       
                       return (
-                        <TableRow key={ag.id} className={ag.status === 'cancelado' ? "opacity-60 bg-muted/20" : ""}>
-                          <TableCell className="pl-6 text-sm text-muted-foreground">
+                        <TableRow key={ag.id} className={`${ag.status === 'cancelado' ? "opacity-60 bg-[#111118]/20" : ""} border-[#1e1e2e] hover:bg-[#1e1e2e] text-[#e8e8f0]`}>
+                          <TableCell className="pl-6 text-sm text-[#6b6b8a]">
                             {formatedDate}
                           </TableCell>
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium text-[#e8e8f0]">
                             {ag.hora_agendamento.slice(0, 5)}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <UserAvatar src={ag.perfil?.url_avatar} name={ag.perfil?.nome_completo || ''} size={36} />
                               <div className="flex flex-col">
-                                <span className="font-semibold text-primary">{ag.numero_senha || '-'}</span>
-                                <span className="text-sm truncate max-w-[180px]">{ag.perfil?.nome_completo || 'Sem nome'}</span>
+                                <span className="font-semibold text-[#7c6aff]">{ag.numero_senha || '-'}</span>
+                                <span className="text-sm truncate max-w-[180px] text-[#e8e8f0]">{ag.perfil?.nome_completo || 'Sem nome'}</span>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-col text-sm">
+                            <div className="flex flex-col text-sm text-[#e8e8f0]">
                               <span>{ag.tipo_atendimento?.nome || 'Atendimento'}</span>
                               {ag.grupo_prioridade && ag.grupo_prioridade !== 'normal' && (
-                                <span className="text-xs text-warning uppercase font-bold">{ag.grupo_prioridade}</span>
+                                <span className="text-[10px] text-[#f59e0b] uppercase tracking-[1px] font-bold mt-1">{ag.grupo_prioridade}</span>
                               )}
                             </div>
                           </TableCell>
@@ -764,7 +782,7 @@ const Admin = () => {
                                 <Button 
                                   variant="default" 
                                   size="sm" 
-                                  className="h-8 shadow-none bg-blue-600 hover:bg-blue-700 text-white"
+                                  className="h-8 shadow-none bg-[rgba(124,106,255,0.15)] text-[#7c6aff] border border-[#7c6aff] hover:bg-[rgba(124,106,255,0.25)]"
                                   onClick={() => handleMoverParaFila(ag.id)}
                                   disabled={actionLoading === `chamar_${ag.id}`}
                                   title="Chamar para fila"
@@ -778,7 +796,7 @@ const Admin = () => {
                                   <Button 
                                     variant="secondary" 
                                     size="sm" 
-                                    className="h-8 shadow-none bg-zinc-200 text-zinc-500 cursor-not-allowed"
+                                    className="h-8 shadow-none bg-[#1e1e2e] text-[#6b6b8a] border border-[#2d2d45] cursor-not-allowed hover:bg-[#1e1e2e]"
                                     disabled={true}
                                     title="Data já passou"
                                   >
@@ -787,7 +805,7 @@ const Admin = () => {
                                   <Button 
                                     variant="destructive" 
                                     size="sm" 
-                                    className="h-8 shadow-none"
+                                    className="h-8 shadow-none bg-[rgba(255,107,107,0.15)] text-[#ff6b6b] border border-[#ff6b6b] hover:bg-[rgba(255,107,107,0.25)]"
                                     onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
                                     disabled={actionLoading === `atualizar_${ag.id}`}
                                     title="Marcar como não compareceu"
@@ -802,7 +820,7 @@ const Admin = () => {
                                   <Button 
                                     variant="default" 
                                     size="sm" 
-                                    className="h-8 shadow-none bg-blue-600 hover:bg-blue-700 text-white"
+                                    className="h-8 shadow-none bg-[rgba(0,212,170,0.15)] text-[#00d4aa] border border-[#00d4aa] hover:bg-[rgba(0,212,170,0.25)]"
                                     onClick={() => handleAtualizarStatusAgendamento(ag.id, 'em_atendimento')}
                                     disabled={actionLoading === `atualizar_${ag.id}`}
                                   >
@@ -811,7 +829,7 @@ const Admin = () => {
                                   <Button 
                                     variant="destructive" 
                                     size="sm" 
-                                    className="h-8 shadow-none"
+                                    className="h-8 shadow-none bg-[rgba(255,107,107,0.15)] text-[#ff6b6b] border border-[#ff6b6b] hover:bg-[rgba(255,107,107,0.25)]"
                                     onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
                                     disabled={actionLoading === `atualizar_${ag.id}`}
                                   >
@@ -825,7 +843,7 @@ const Admin = () => {
                                   <Button 
                                     variant="default" 
                                     size="sm" 
-                                    className="h-8 shadow-none bg-green-600 hover:bg-green-700 text-white"
+                                    className="h-8 shadow-none bg-[rgba(0,212,170,0.15)] text-[#00d4aa] border border-[#00d4aa] hover:bg-[rgba(0,212,170,0.25)]"
                                     onClick={() => handleAtualizarStatusAgendamento(ag.id, 'concluido')}
                                     disabled={actionLoading === `atualizar_${ag.id}`}
                                   >
@@ -834,7 +852,7 @@ const Admin = () => {
                                   <Button 
                                     variant="destructive" 
                                     size="sm" 
-                                    className="h-8 shadow-none"
+                                    className="h-8 shadow-none bg-[rgba(255,107,107,0.15)] text-[#ff6b6b] border border-[#ff6b6b] hover:bg-[rgba(255,107,107,0.25)]"
                                     onClick={() => handleAtualizarStatusAgendamento(ag.id, 'nao_compareceu')}
                                     disabled={actionLoading === `atualizar_${ag.id}`}
                                   >
@@ -855,14 +873,14 @@ const Admin = () => {
         </Card>
 
         {/* Fila em Tempo Real */}
-        <Card>
-          <CardHeader className="pb-3 border-b border-border/50">
+        <Card className="bg-[#13131f] border-[#2d2d45]">
+          <CardHeader className="pb-3 border-b border-[#1e1e2e]">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                 <Users size={20} className="text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2 text-[#e8e8f0]">
+                 <Users size={20} className="text-[#7c6aff]" />
                  Fila em Tempo Real
               </CardTitle>
-              <Button onClick={handleChamarProximo} className="bg-success hover:bg-success/90 text-success-foreground">
+              <Button onClick={handleChamarProximo} className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white hover:opacity-90 border-0 shadow-none">
                 <PhoneCall size={16} className="mr-1" />
                 Chamar próximo
               </Button>
@@ -870,25 +888,25 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             {fila.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users size={48} className="mx-auto mb-2 opacity-50" />
+              <div className="text-center py-8 text-[#6b6b8a]">
+                <Users size={48} className="mx-auto mb-2 opacity-30" />
                 <p>Fila vazia</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 mt-4">
                 {fila.map((item, index) => {
                   const st = statusBadgeConfig[item.agendamento?.status || 'aguardando'] || statusBadgeConfig['aguardando'];
                   return (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-[#111118] border border-[#2d2d45] rounded-xl">
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                        <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[#7c6aff] border-[#7c6aff] bg-transparent">
                           {index + 1}
                         </Badge>
                         <div>
-                          <p className="font-medium text-foreground">
+                          <p className="font-medium text-[#e8e8f0]">
                             {item.agendamento?.perfil?.nome_completo || `Paciente ${item.id.slice(0, 8)}`}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-[#6b6b8a]">
                             {item.agendamento?.tipo_atendimento?.nome || 'Atendimento'}
                           </p>
                         </div>
@@ -905,47 +923,47 @@ const Admin = () => {
         </Card>
 
         {/* Gestão de Usuários */}
-        <Card>
-          <CardHeader className="pb-3 border-b border-border/50">
+        <Card className="bg-[#13131f] border-[#2d2d45]">
+          <CardHeader className="pb-3 border-b border-[#1e1e2e]">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users size={20} className="text-primary" />
+                <CardTitle className="text-lg flex items-center gap-2 text-[#e8e8f0]">
+                  <Users size={20} className="text-[#00d4aa]" />
                   Gestão de Usuários
                 </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">Gerencie os perfis de acesso e status no sistema.</p>
+                <p className="text-sm text-[#6b6b8a] mt-1">Gerencie os perfis de acesso e status no sistema.</p>
               </div>
               
               <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                 <div className="relative w-full sm:w-64">
-                  <Search size={16} className="absolute left-2.5 top-2.5 text-muted-foreground" />
+                  <Search size={16} className="absolute left-2.5 top-2.5 text-[#6b6b8a]" />
                   <Input 
                     placeholder="Buscar por nome..." 
-                    className="pl-9 bg-background"
+                    className="pl-9 bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
                     value={filtroNome}
                     onChange={(e) => setFiltroNome(e.target.value)}
                   />
                 </div>
                 
                 <Select value={filtroPerfil} onValueChange={setFiltroPerfil}>
-                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                  <SelectTrigger className="w-full sm:w-[150px] bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                     <SelectValue placeholder="Perfil" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todos">Todos Perfis</SelectItem>
-                    <SelectItem value="usuario">Usuários</SelectItem>
-                    <SelectItem value="administrador">Administradores</SelectItem>
+                  <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                    <SelectItem value="Todos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Todos Perfis</SelectItem>
+                    <SelectItem value="usuario" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Usuários</SelectItem>
+                    <SelectItem value="administrador" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Administradores</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                  <SelectTrigger className="w-full sm:w-[150px] bg-background">
+                  <SelectTrigger className="w-full sm:w-[150px] bg-[#111118] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todos">Todos Status</SelectItem>
-                    <SelectItem value="Ativos">Ativos</SelectItem>
-                    <SelectItem value="Inativos">Inativos</SelectItem>
+                  <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                    <SelectItem value="Todos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Todos Status</SelectItem>
+                    <SelectItem value="Ativos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Ativos</SelectItem>
+                    <SelectItem value="Inativos" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Inativos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -954,20 +972,20 @@ const Admin = () => {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="w-[250px] pl-6">Usuário</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Perfil</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right pr-6">Ações</TableHead>
+                <TableHeader className="bg-[#111118]">
+                  <TableRow className="border-[#1e1e2e] hover:bg-transparent">
+                    <TableHead className="w-[250px] pl-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Usuário</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Contato</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Prioridade</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Perfil</TableHead>
+                    <TableHead className="text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Status</TableHead>
+                    <TableHead className="text-right pr-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {usuariosFilter.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    <TableRow className="border-[#1e1e2e]">
+                      <TableCell colSpan={6} className="h-24 text-center text-[#6b6b8a]">
                         Nenhum usuário encontrado com os filtros atuais.
                       </TableCell>
                     </TableRow>
@@ -975,7 +993,7 @@ const Admin = () => {
                     usuariosFilter.map((u) => {
                       const isAtivo = u.ativo !== false;
                       return (
-                        <TableRow key={u.id} className={!isAtivo ? "opacity-60 bg-muted/20" : ""}>
+                        <TableRow key={u.id} className={`${!isAtivo ? "opacity-60 bg-[#111118]/20" : ""} border-[#1e1e2e] hover:bg-[#1e1e2e] text-[#e8e8f0]`}>
                           <TableCell className="pl-6">
                             <div className="flex items-center gap-3">
                               <UserAvatar src={u.url_avatar} name={u.nome_completo || ''} size={36} />
@@ -986,7 +1004,7 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col text-sm">
-                              <span className="text-muted-foreground">{u.telefone || '-'}</span>
+                              <span className="text-[#6b6b8a]">{u.telefone || '-'}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -995,19 +1013,19 @@ const Admin = () => {
                                 {prioridadeConfig[u.grupo_prioridade]?.label || u.grupo_prioridade}
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
+                              <span className="text-[#6b6b8a] text-sm">-</span>
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className={`capitalize ${u.perfil === 'administrador' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100 hover:text-orange-800' : 'bg-blue-100 text-blue-800 hover:bg-blue-100 hover:text-blue-800'}`}>
+                            <Badge variant="secondary" className={`capitalize border ${u.perfil === 'administrador' ? 'bg-[#7c6aff]/10 text-[#7c6aff] border-[#7c6aff]/20' : 'bg-[#00d4aa]/10 text-[#00d4aa] border-[#00d4aa]/20'}`}>
                               {u.perfil || 'usuario'}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             {isAtivo ? (
-                              <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Ativo</Badge>
+                              <Badge variant="outline" className="border-[#00d4aa]/30 bg-[#00d4aa]/10 text-[#00d4aa]">Ativo</Badge>
                             ) : (
-                              <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">Inativo</Badge>
+                              <Badge variant="outline" className="border-[#ff6b6b]/30 bg-[#ff6b6b]/10 text-[#ff6b6b]">Inativo</Badge>
                             )}
                           </TableCell>
                           <TableCell className="text-right pr-6">
@@ -1015,7 +1033,7 @@ const Admin = () => {
                               <Button 
                                 variant="outline" 
                                 size="icon" 
-                                className="h-8 w-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                className="h-8 w-8 text-[#7c6aff] border-[#7c6aff]/30 bg-transparent hover:bg-[#7c6aff]/10"
                                 onClick={() => {
                                   setEditingUser(u);
                                   setEditFormData({
@@ -1033,7 +1051,7 @@ const Admin = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className={`h-8 gap-1 ${isAtivo ? 'text-red-600 border-red-200 hover:bg-red-50' : 'text-green-600 border-green-200 hover:bg-green-50'}`}
+                                className={`h-8 gap-1 ${isAtivo ? 'text-[#ff6b6b] border-[#ff6b6b]/30 hover:bg-[#ff6b6b]/10 bg-transparent' : 'text-[#00d4aa] border-[#00d4aa]/30 hover:bg-[#00d4aa]/10 bg-transparent'}`}
                                 onClick={() => handleToggleUserStatus(u.id, isAtivo)}
                                 disabled={actionLoading === `toggle_${u.id}`}
                               >
@@ -1058,63 +1076,65 @@ const Admin = () => {
 
       {/* Modal Edição de Usuário */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-[#111118] border-[#2d2d45] text-[#e8e8f0]">
           <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogTitle className="font-[Syne] text-lg text-[#e8e8f0]">Editar Usuário</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nome Completo</label>
+              <label className="text-sm font-medium text-[#6b6b8a] uppercase tracking-[1px]">Nome Completo</label>
               <Input 
                 value={editFormData.nome_completo || ''} 
                 onChange={e => setEditFormData({...editFormData, nome_completo: e.target.value})} 
+                className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Telefone</label>
+              <label className="text-sm font-medium text-[#6b6b8a] uppercase tracking-[1px]">Telefone</label>
               <Input 
                 value={editFormData.telefone || ''} 
                 onChange={e => setEditFormData({...editFormData, telefone: e.target.value})} 
+                className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus-visible:ring-[#7c6aff]"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Grupo de Prioridade</label>
+              <label className="text-sm font-medium text-[#6b6b8a] uppercase tracking-[1px]">Grupo de Prioridade</label>
               <Select 
                 value={editFormData.grupo_prioridade || 'normal'} 
                 onValueChange={(v) => setEditFormData({...editFormData, grupo_prioridade: v as any})}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="idoso">Idoso (60+)</SelectItem>
-                  <SelectItem value="gestante">Gestante</SelectItem>
-                  <SelectItem value="deficiente">PCD</SelectItem>
-                  <SelectItem value="lactante">Lactante</SelectItem>
-                  <SelectItem value="obeso">Obeso</SelectItem>
+                <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                  <SelectItem value="normal" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Normal</SelectItem>
+                  <SelectItem value="idoso" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Idoso (60+)</SelectItem>
+                  <SelectItem value="gestante" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Gestante</SelectItem>
+                  <SelectItem value="deficiente" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">PCD</SelectItem>
+                  <SelectItem value="lactante" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Lactante</SelectItem>
+                  <SelectItem value="obeso" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Obeso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Perfil de Acesso</label>
+              <label className="text-sm font-medium text-[#6b6b8a] uppercase tracking-[1px]">Perfil de Acesso</label>
               <Select 
                 value={editFormData.perfil || 'usuario'} 
                 onValueChange={(v) => setEditFormData({...editFormData, perfil: v as any})}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0] focus:ring-[#7c6aff]">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="usuario">Usuário</SelectItem>
-                  <SelectItem value="administrador">Administrador</SelectItem>
+                <SelectContent className="bg-[#13131f] border-[#2d2d45] text-[#e8e8f0]">
+                  <SelectItem value="usuario" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Usuário</SelectItem>
+                  <SelectItem value="administrador" className="focus:bg-[#1e1e2e] focus:text-[#e8e8f0]">Administrador</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveUser} disabled={actionLoading === 'save_user'}>
+            <Button variant="outline" className="border-[#2d2d45] text-[#e8e8f0] hover:bg-[#1e1e2e] hover:text-white" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
+            <Button className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white hover:opacity-90 border-0" onClick={handleSaveUser} disabled={actionLoading === 'save_user'}>
               {actionLoading === 'save_user' ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>

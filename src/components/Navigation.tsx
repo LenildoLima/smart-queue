@@ -53,7 +53,7 @@ export const Navigation = () => {
   return (
     <>
       {/* sidebar for desktop */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-56 flex-col justify-between border-r bg-card p-4">
+      <aside className="hidden md:flex fixed inset-y-0 left-0 z-50 w-56 flex-col justify-between border-r border-[#1e1e2e] bg-[#111118] p-4 text-[#e8e8f0]">
         <div>
           <NavLink to="/dashboard" className="flex items-center mb-8">
             <SmartQueueLogo size="sm" />
@@ -65,8 +65,8 @@ export const Navigation = () => {
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
-                    isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-muted/30'
+                    'flex items-center gap-3 px-3 py-2 rounded-md transition-colors font-[Inter]',
+                    isActive ? 'text-[#e8e8f0] bg-[#7c6aff]/15 border-l-2 border-[#7c6aff]' : 'text-[#6b6b8a] hover:bg-[#1e1e2e] hover:text-[#7c6aff]'
                   )
                 }
               >
@@ -82,7 +82,7 @@ export const Navigation = () => {
             <span className="text-sm font-medium">{perfil?.nome_completo || 'Usuário'}</span>
           </div>
           <button
-            className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive"
+            className="mt-3 flex items-center gap-2 text-sm text-[#6b6b8a] hover:text-[#ff6b6b] font-[Inter]"
             onClick={handleLogout}
           >
             <LogOut size={16} /> Sair
@@ -91,7 +91,7 @@ export const Navigation = () => {
       </aside>
 
       {/* bottom nav for mobile */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 border-t bg-card md:hidden">
+      <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-[#1e1e2e] bg-[#111118] md:hidden">
         <div className="flex items-center justify-around h-16">
           {items.map(({ to, label, icon: Icon }) => (
             <NavLink
@@ -99,8 +99,8 @@ export const Navigation = () => {
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-1 text-xs font-medium transition-colors',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  'flex flex-col items-center gap-1 text-xs font-medium transition-colors font-[Inter]',
+                  isActive ? 'text-[#7c6aff]' : 'text-[#6b6b8a] hover:text-[#e8e8f0]'
                 )
               }
             >

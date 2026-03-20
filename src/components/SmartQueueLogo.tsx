@@ -10,10 +10,12 @@ export const SmartQueueLogo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) =
 
   return (
     <div className="flex items-center gap-2">
-      <div className="gradient-primary rounded-lg p-2">
-        <Users className="text-primary-foreground" size={s.icon} />
+      <div className="bg-gradient-to-br from-[#7c6aff] to-[#00d4aa] rounded-lg p-2">
+        <Users className="text-white" size={s.icon} />
       </div>
-      <span className={`${s.text} font-bold text-primary`}>SmartQueue</span>
+      <span className={`${s.text} font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] font-[Syne]`}>
+        SmartQueue
+      </span>
     </div>
   );
 };
