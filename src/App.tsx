@@ -13,6 +13,7 @@ import ComingSoon from "./pages/ComingSoon";
 import Admin from "./pages/Admin";
 import Perfil from "./pages/Perfil";
 import NotFound from "./pages/NotFound";
+import Display from "./pages/Display";
 
 import Agendar from "./pages/Agendar";
 import Relatorios from "./pages/Relatorios";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+            <Route path="/display" element={<Display />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

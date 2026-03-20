@@ -293,6 +293,23 @@ const Admin = () => {
   const handleChamarProximo = async () => {
     if (!unidadeId) return;
 
+    // 1. Busca o próximo da fila (ordenado por posição, sem atendimento_fim)
+    const { data: proximo, error: filaError } = await supabase
+      .from('fila')
+      .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id)')
+      .eq('unidade_id', unidadeId)
+      .is('atendimento_fim', null)
+      .order('posicao', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (filaError || !proximo) {
+      toast({ title: 'Fila vazia', description: 'Não há ninguém aguardando.' });
+      return;
+    }
+
+    const agendamentoId = (proximo.agendamento as any).id;
+
     // Finalizar atendimentos anteriores que já foram chamados mas não finalizados
     await supabase
       .from('fila')
@@ -301,53 +318,36 @@ const Admin = () => {
       .is('atendimento_fim', null)
       .not('chamado_em', 'is', null);
 
-    // Buscar próximo da fila (ordenado por posição, sem atendimento_fim)
-    const { data: proximo, error: filaError } = await supabase
-      .from('fila')
-      .select('*')
-      .eq('unidade_id', unidadeId)
-      .is('atendimento_fim', null)
-      .order('posicao', { ascending: true })
-      .limit(1)
-      .single();
-
-    if (filaError || !proximo) {
-      toast({ title: 'Fila vazia', description: 'Não há ninguém aguardando.' });
-      return;
-    }
-
-    // Atualizar agendamento para em atendimento
-    const { error: updateError } = await supabase
+    // 2. Atualiza no banco: Agendamento para em_atendimento
+    await supabase
       .from('agendamentos')
-      .update({
+      .update({ 
         status: 'em_atendimento',
-        atualizado_em: new Date().toISOString(),
+        atualizado_em: new Date().toISOString() 
       })
-      .eq('id', proximo.agendamento_id);
+      .eq('id', agendamentoId);
 
-    if (updateError) {
-      toast({ title: 'Erro', description: updateError.message, variant: 'destructive' });
-      return;
-    }
-
-    // Atualizar fila com chamado_em e atendimento_inicio
-    const { error: filaUpdateError } = await supabase
+    // 3. Atualiza no banco: Fila com chamado_em e atendimento_inicio
+    await supabase
       .from('fila')
       .update({
         chamado_em: new Date().toISOString(),
-        iniciado_em: new Date().toISOString(),
         atendimento_inicio: new Date().toISOString(),
       })
       .eq('id', proximo.id);
 
-    if (filaUpdateError) {
-      toast({ title: 'Erro', description: filaUpdateError.message, variant: 'destructive' });
-    } else {
-      setAgendamentos(prev => prev.map(a => 
-        a.id === proximo.agendamento_id ? { ...a, status: 'em_atendimento' } : a
-      ));
-      toast({ title: 'Chamado!', description: `Paciente chamado.` });
-    }
+    // 4. Atualiza estado local IMEDIATAMENTE
+    setAgendamentos(prev => prev.map(a => 
+      a.id === agendamentoId ? { ...a, status: 'em_atendimento' } : a
+    ));
+
+    // 5. Recarrega dados (Fila e Agendamentos)
+    await fetchData();
+
+    toast({ 
+      title: 'Próximo chamado!',
+      description: 'Paciente em atendimento.'
+    });
   };
 
   const handleMoverParaFila = async (agendamentoId: string) => {
@@ -398,6 +398,7 @@ const Admin = () => {
     setAgendamentos(prev => prev.map(a => 
       a.id === agendamentoId ? { ...a, status: 'aguardando' } : a
     ));
+    fetchData();
     
     toast({ title: 'Enviado para fila', description: 'O paciente foi movido para a fila de espera.', className: 'bg-success text-success-foreground' });
   };
@@ -408,7 +409,7 @@ const Admin = () => {
     if (novoStatus === 'em_atendimento') {
       await supabase
         .from('fila')
-        .update({ iniciado_em: new Date().toISOString() })
+        .update({ atendimento_inicio: new Date().toISOString() })
         .eq('agendamento_id', agendamentoId);
     }
 
@@ -421,15 +422,15 @@ const Admin = () => {
       .eq('id', agendamentoId);
 
     if (novoStatus === 'concluido') {
-      // Busca iniciado_em da fila
+      // Busca atendimento_inicio da fila
       const { data: filaEntry } = await supabase
         .from('fila')
-        .select('chamado_em, iniciado_em')
+        .select('chamado_em, atendimento_inicio')
         .eq('agendamento_id', agendamentoId)
         .single();
         
       const agora = new Date();
-      const iniciado = filaEntry?.iniciado_em ? new Date(filaEntry.iniciado_em) : agora;
+      const iniciado = filaEntry?.atendimento_inicio ? new Date(filaEntry.atendimento_inicio) : agora;
       const chamado = filaEntry?.chamado_em ? new Date(filaEntry.chamado_em) : agora;
       
       const duracaoMin = Math.round((agora.getTime() - iniciado.getTime()) / 60000);
@@ -437,7 +438,7 @@ const Admin = () => {
       
       await supabase
         .from('fila')
-        .update({ atendimento_fim: agora.toISOString(), finalizado_em: agora.toISOString() })
+        .update({ atendimento_fim: agora.toISOString() })
         .eq('agendamento_id', agendamentoId);
         
       await supabase
@@ -463,6 +464,7 @@ const Admin = () => {
     setAgendamentos(prev => prev.map(a => 
       a.id === agendamentoId ? { ...a, status: novoStatus } : a
     ));
+    fetchData();
     
     toast({ title: 'Status atualizado', description: `O agendamento foi marcado como ${statusBadgeConfig[novoStatus]?.label || novoStatus}.`, className: 'bg-success text-success-foreground' });
   };
@@ -649,6 +651,56 @@ const Admin = () => {
             </Card>
           ))}
         </div>
+
+        {/* Display da Fila */}
+        {unidadeId && (() => {
+          const displayUrl = `${window.location.origin}/display?unidade=${unidadeId}`;
+          return (
+            <Card className="bg-[#13131f] border-[#2d2d45]">
+              <CardContent className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                  {/* Icon + Texts */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div className="text-3xl select-none mt-0.5">📺</div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#e8e8f0] text-base font-[Syne] leading-tight">Display da Fila</p>
+                      <p className="text-[#6b6b8a] text-sm mt-0.5">Exiba a fila em tempo real em uma TV ou monitor</p>
+                      {/* URL field */}
+                      <input
+                        readOnly
+                        value={displayUrl}
+                        className="mt-3 w-full rounded-md px-3 py-1.5 text-xs text-[#7c6aff] bg-[#111118] border border-[#2d2d45] outline-none cursor-text font-mono select-all"
+                        style={{ minWidth: 0 }}
+                        onFocus={e => e.currentTarget.select()}
+                      />
+                    </div>
+                  </div>
+                  {/* Buttons */}
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-[#2d2d45] text-[#e8e8f0] hover:bg-[#1e1e2e] bg-transparent h-9"
+                      onClick={() => {
+                        navigator.clipboard.writeText(displayUrl);
+                        toast({ title: 'URL copiada!', description: 'Link do display copiado para a área de transferência.' });
+                      }}
+                    >
+                      📋 Copiar URL
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-[#7c6aff] to-[#00d4aa] text-white hover:opacity-90 border-0 h-9"
+                      onClick={() => window.open(`/display?unidade=${unidadeId}`, '_blank')}
+                    >
+                      📺 Visualizar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Agendamentos */}
         <Card className="bg-[#13131f] border-[#2d2d45]">

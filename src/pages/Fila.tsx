@@ -83,7 +83,7 @@ export default function Fila() {
           .from('fila')
           .select('id, posicao, unidade_id')
           .eq('agendamento_id', ags.id)
-          .is('finalizado_em', null)
+          .is('atendimento_fim', null)
           .maybeSingle();
 
         if (filaEntry) {
@@ -92,7 +92,7 @@ export default function Fila() {
             .from('fila')
             .select('id, posicao, agendamento_id')
             .eq('unidade_id', filaEntry.unidade_id)
-            .is('finalizado_em', null);
+            .is('atendimento_fim', null);
 
           if (todosFila) {
             // Conta os que ainda não foram atendidos e têm posicao válida
