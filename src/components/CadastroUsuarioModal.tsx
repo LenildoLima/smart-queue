@@ -124,10 +124,35 @@ export function CadastroUsuarioModal({ isOpen, onClose, onSuccess }: CadastroUsu
      * deslogando o administrador que está operando o painel, quebrando a UX!
      */
     try {
-      const { data: resData, error: invokeError } = await supabase.functions.invoke(
-        'criar-usuario-admin',
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      console.log('Session:', session);
+      console.log('Access token:', session?.access_token);
+      console.log('URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('Key:', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+
+      if (!session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('User:', user);
+      }
+
+      // Usar o token do localStorage como fallback
+      const localToken = localStorage.getItem('sb-qlssrbkoxndiprbfjunk-auth-token');
+      const parsedToken = localToken ? JSON.parse(localToken) : null;
+      console.log('Local token:', parsedToken?.access_token);
+
+      const authToken = session?.access_token || parsedToken?.access_token;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/criar-usuario-admin`,
         {
-          body: {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({
             nome_completo: nome, 
             email, 
             senha,
@@ -135,11 +160,13 @@ export function CadastroUsuarioModal({ isOpen, onClose, onSuccess }: CadastroUsu
             telefone: telefone || null, 
             data_nascimento: dataNascimento || null, 
             grupo_prioridade: prioridade
-          }
+          })
         }
       );
       
-      if (invokeError) throw new Error(invokeError.message || 'Erro de rede na Edge Function');
+      const resData = await response.json();
+
+      if (!response.ok) throw new Error(resData.erro || 'Erro na Edge Function');
       if (resData?.erro) throw new Error(resData.erro);
 
       const { data: profile } = await supabase.from('perfis').select('*').eq('id', resData.usuario.id).single();
