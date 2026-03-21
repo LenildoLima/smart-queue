@@ -200,56 +200,68 @@ const Admin = () => {
     init();
   }, []);
 
-  // Fetch summary + queue when unidadeId is set
-  const fetchData = useCallback(async () => {
+  // Funções de busca granular
+  const fetchSummary = useCallback(async () => {
     if (!unidadeId) return;
-
     const hoje = process.env.NODE_ENV === 'development' ? new Date().toISOString().split('T')[0] : format(new Date(), 'yyyy-MM-dd');
-
-    const [todosRes, filaRes, usuariosRes, agendamentosRes] = await Promise.all([
-      supabase.from('agendamentos').select('status')
-        .eq('unidade_id', unidadeId).eq('data_agendamento', hoje),
-      supabase
-        .from('fila')
-        .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id, numero_senha, status, grupo_prioridade, tipo_atendimento_id, usuario_id, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome))')
-        .eq('unidade_id', unidadeId)
-        .is('atendimento_fim', null)
-        .in('agendamentos.status', ['aguardando', 'em_atendimento'])
-        .order('posicao', { ascending: true }),
-      supabase.from('perfis').select('*').order('nome_completo', { ascending: true }),
-      supabase
-        .from('agendamentos')
-        .select('id, numero_senha, status, grupo_prioridade, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo, url_avatar, telefone), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome)')
-        .eq('unidade_id', unidadeId)
-        .order('data_agendamento', { ascending: false })
-        .order('hora_agendamento', { ascending: true }),
-    ]);
+    const { data } = await supabase.from('agendamentos').select('status')
+      .eq('unidade_id', unidadeId).eq('data_agendamento', hoje);
     
-    // Calcular os resumos na memoria baseado em todosRes
-    const stList = todosRes.data || [];
+    const stList = data || [];
     setResumo({
       agendados: stList.filter(s => s.status !== 'cancelado').length,
       aguardando: stList.filter(s => s.status === 'aguardando').length,
       concluidos: stList.filter(s => s.status === 'concluido').length,
       cancelados: stList.filter(s => s.status === 'cancelado').length,
     });
+  }, [unidadeId]);
 
-    if (filaRes.data) {
-      // Garante que o item da fila possua um agendamento válido nos status corretos (caso o in não estrito anule o objeto relacionado)
-      const filaValida = (filaRes.data as unknown as FilaItem[]).filter(f => 
+  const fetchFila = useCallback(async () => {
+    if (!unidadeId) return;
+    const { data } = await supabase
+      .from('fila')
+      .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id, numero_senha, status, grupo_prioridade, tipo_atendimento_id, usuario_id, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome))')
+      .eq('unidade_id', unidadeId)
+      .is('atendimento_fim', null)
+      .in('agendamentos.status', ['aguardando', 'em_atendimento'])
+      .order('posicao', { ascending: true });
+
+    if (data) {
+      const filaValida = (data as unknown as FilaItem[]).filter(f => 
         f.agendamento && ['aguardando', 'em_atendimento'].includes(f.agendamento.status)
       );
       setFila(filaValida);
     }
-    
-    if (usuariosRes.data) {
-      setUsuarios(usuariosRes.data as Perfil[]);
-    }
+  }, [unidadeId]);
 
-    if (agendamentosRes.data) {
-      setAgendamentos(agendamentosRes.data as unknown as AgendamentoItem[]);
+  const fetchAgendamentos = useCallback(async () => {
+    if (!unidadeId) return;
+    const { data } = await supabase
+      .from('agendamentos')
+      .select('id, numero_senha, status, grupo_prioridade, data_agendamento, hora_agendamento, perfil:perfis!agendamentos_usuario_id_fkey(nome_completo, url_avatar, telefone), tipo_atendimento:tipos_atendimento!agendamentos_tipo_atendimento_id_fkey(nome)')
+      .eq('unidade_id', unidadeId)
+      .order('data_agendamento', { ascending: false })
+      .order('hora_agendamento', { ascending: true });
+
+    if (data) {
+      setAgendamentos(data as unknown as AgendamentoItem[]);
     }
   }, [unidadeId]);
+
+  const fetchUsuarios = useCallback(async () => {
+    const { data } = await supabase.from('perfis').select('*').order('nome_completo', { ascending: true });
+    if (data) setUsuarios(data as Perfil[]);
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    if (!unidadeId) return;
+    await Promise.all([
+      fetchSummary(),
+      fetchFila(),
+      fetchUsuarios(),
+      fetchAgendamentos()
+    ]);
+  }, [unidadeId, fetchSummary, fetchFila, fetchUsuarios, fetchAgendamentos]);
 
   useEffect(() => {
     if (!unidadeId) return;
@@ -291,62 +303,58 @@ const Admin = () => {
   }, [unidadeId, fetchData]);
 
   const handleChamarProximo = async () => {
+    console.log('🔔 Chamar próximo clicado')
+    console.log('unidadeId:', unidadeId)
     if (!unidadeId) return;
 
-    // 1. Busca o próximo da fila (ordenado por posição, sem atendimento_fim)
+    // 1. Busca o próximo da fila (ordenado por posição, sem atendimento_fim e sem ser chamado)
     const { data: proximo, error: filaError } = await supabase
       .from('fila')
-      .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id)')
+      .select('*, agendamento:agendamentos!fila_agendamento_id_fkey(id, numero_senha, status)')
       .eq('unidade_id', unidadeId)
       .is('atendimento_fim', null)
       .order('posicao', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    if (filaError || !proximo) {
+    console.log('Próximo encontrado:', proximo)
+
+    if (filaError || !proximo || (proximo.agendamento as any)?.status !== 'aguardando') {
       toast({ title: 'Fila vazia', description: 'Não há ninguém aguardando.' });
       return;
     }
 
     const agendamentoId = (proximo.agendamento as any).id;
+    console.log('agendamentoId:', agendamentoId)
 
-    // Finalizar atendimentos anteriores que já foram chamados mas não finalizados
-    await supabase
+    // 2. Chamar RPC para atualizar status e fila de forma atômica
+    const { error } = await supabase
+      .rpc('chamar_proximo', { p_agendamento_id: agendamentoId })
+
+    console.log('Resultado chamar_proximo error:', JSON.stringify(error))
+    console.log('Resultado chamar_proximo completo:', error === null ? 'SEM ERRO' : error)
+
+    // Após a RPC verificar no banco
+    const { data: verificacao } = await supabase
       .from('fila')
-      .update({ atendimento_fim: new Date().toISOString() })
-      .eq('unidade_id', unidadeId)
-      .is('atendimento_fim', null)
-      .not('chamado_em', 'is', null);
+      .select('chamado_em, atendimento_fim')
+      .eq('agendamento_id', agendamentoId)
+      .single()
+    console.log('Verificação banco após chamar_proximo:', verificacao)
 
-    // 2. Atualiza no banco: Agendamento para em_atendimento
-    await supabase
-      .from('agendamentos')
-      .update({ 
-        status: 'em_atendimento',
-        atualizado_em: new Date().toISOString() 
-      })
-      .eq('id', agendamentoId);
+    if (error) {
+      console.error('Erro ao chamar próximo:', error)
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' })
+      return
+    }
 
-    // 3. Atualiza no banco: Fila com chamado_em e atendimento_inicio
-    await supabase
-      .from('fila')
-      .update({
-        chamado_em: new Date().toISOString(),
-        atendimento_inicio: new Date().toISOString(),
-      })
-      .eq('id', proximo.id);
-
-    // 4. Atualiza estado local IMEDIATAMENTE
-    setAgendamentos(prev => prev.map(a => 
-      a.id === agendamentoId ? { ...a, status: 'em_atendimento' } : a
-    ));
-
-    // 5. Recarrega dados (Fila e Agendamentos)
-    await fetchData();
+    // 3. Recarrega dados do banco em paralelo
+    await Promise.all([fetchFila(), fetchAgendamentos(), fetchSummary()]);
 
     toast({ 
-      title: 'Próximo chamado!',
-      description: 'Paciente em atendimento.'
+      title: 'Paciente chamado!',
+      description: 'Clique em Em atendimento para iniciar o atendimento.',
+      className: 'bg-success text-success-foreground'
     });
   };
 
@@ -398,7 +406,7 @@ const Admin = () => {
     setAgendamentos(prev => prev.map(a => 
       a.id === agendamentoId ? { ...a, status: 'aguardando' } : a
     ));
-    fetchData();
+    await Promise.all([fetchFila(), fetchAgendamentos(), fetchSummary()]);
     
     toast({ title: 'Enviado para fila', description: 'O paciente foi movido para a fila de espera.', className: 'bg-success text-success-foreground' });
   };
@@ -406,65 +414,64 @@ const Admin = () => {
   const handleAtualizarStatusAgendamento = async (agendamentoId: string, novoStatus: string) => {
     setActionLoading(`atualizar_${agendamentoId}`);
 
-    if (novoStatus === 'em_atendimento') {
-      await supabase
-        .from('fila')
-        .update({ atendimento_inicio: new Date().toISOString() })
-        .eq('agendamento_id', agendamentoId);
+    try {
+      if (novoStatus === 'em_atendimento') {
+        console.log('🚀 Chamando iniciar_atendimento com ID:', agendamentoId)
+        console.log('Tipo do ID:', typeof agendamentoId)
+        
+        const { data, error } = await supabase
+          .rpc('iniciar_atendimento', { p_agendamento_id: agendamentoId })
+        
+        console.log('Resultado RPC:', { data, error })
+        
+        if (error) {
+          console.error('❌ Erro RPC:', error)
+          throw error
+        }
+        
+        console.log('✅ RPC executada com sucesso')
+        
+      } else if (novoStatus === 'concluido') {
+        const { error } = await supabase
+          .rpc('concluir_atendimento', { p_agendamento_id: agendamentoId })
+        if (error) throw error
+        
+      } else {
+        const { error: erroStatus } = await supabase
+          .from('agendamentos')
+          .update({
+            status: novoStatus as any,
+            atualizado_em: new Date().toISOString(),
+          })
+          .eq('id', agendamentoId)
+        
+        if (erroStatus) throw erroStatus
+
+        if (novoStatus === 'nao_compareceu' || novoStatus === 'cancelado') {
+          await supabase
+            .from('fila')
+            .update({ atendimento_fim: new Date().toISOString() })
+            .eq('agendamento_id', agendamentoId)
+        }
+      }
+
+      // Atualiza estado local imediatamente
+      setAgendamentos(prev => prev.map(a => 
+        a.id === agendamentoId ? { ...a, status: novoStatus } : a
+      ));
+
+      // Recarrega dados do banco em paralelo
+      await Promise.all([fetchFila(), fetchAgendamentos(), fetchSummary()]);
+
+    } catch (error: any) {
+      console.error(`Erro ao atualizar para ${novoStatus}:`, error)
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' })
+      setActionLoading(null)
+      return
     }
 
-    const { error: agError } = await supabase
-      .from('agendamentos')
-      .update({
-        status: novoStatus as any,
-        atualizado_em: new Date().toISOString(),
-      })
-      .eq('id', agendamentoId);
-
-    if (novoStatus === 'concluido') {
-      // Busca atendimento_inicio da fila
-      const { data: filaEntry } = await supabase
-        .from('fila')
-        .select('chamado_em, atendimento_inicio')
-        .eq('agendamento_id', agendamentoId)
-        .single();
-        
-      const agora = new Date();
-      const iniciado = filaEntry?.atendimento_inicio ? new Date(filaEntry.atendimento_inicio) : agora;
-      const chamado = filaEntry?.chamado_em ? new Date(filaEntry.chamado_em) : agora;
-      
-      const duracaoMin = Math.round((agora.getTime() - iniciado.getTime()) / 60000);
-      const esperaMin = Math.round((iniciado.getTime() - chamado.getTime()) / 60000);
-      
-      await supabase
-        .from('fila')
-        .update({ atendimento_fim: agora.toISOString() })
-        .eq('agendamento_id', agendamentoId);
-        
-      await supabase
-        .from('historico_atendimentos')
-        .update({ 
-          tempo_espera_minutos: esperaMin,
-          duracao_minutos: duracaoMin
-        })
-        .eq('agendamento_id', agendamentoId);
-    } else if (novoStatus === 'nao_compareceu') {
-      await supabase
-        .from('fila')
-        .update({ atendimento_fim: new Date().toISOString() })
-        .eq('agendamento_id', agendamentoId);
-    }
 
     setActionLoading(null);
-    if (agError) {
-      toast({ title: 'Erro ao atualizar', description: agError.message, variant: 'destructive' });
-      return;
-    }
-    
-    setAgendamentos(prev => prev.map(a => 
-      a.id === agendamentoId ? { ...a, status: novoStatus } : a
-    ));
-    fetchData();
     
     toast({ title: 'Status atualizado', description: `O agendamento foi marcado como ${statusBadgeConfig[novoStatus]?.label || novoStatus}.`, className: 'bg-success text-success-foreground' });
   };

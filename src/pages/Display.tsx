@@ -232,29 +232,29 @@ export default function Display() {
       <header style={{
         position: 'relative', zIndex: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 32px',
+        padding: '24px 48px',
         borderBottom: '1px solid rgba(124,106,255,0.15)',
         background: 'rgba(17,17,24,0.85)',
         backdropFilter: 'blur(12px)',
         flexShrink: 0,
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
+            width: '56px', height: '56px', borderRadius: '14px',
             background: 'linear-gradient(135deg, #7c6aff, #00d4aa)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '18px', fontWeight: 900, color: '#fff', fontFamily: 'Syne, Inter, sans-serif',
+            fontSize: '28px', fontWeight: 900, color: '#fff', fontFamily: 'Syne, Inter, sans-serif',
           }}>S</div>
-          <span style={{ color: '#e8e8f0', fontWeight: 700, fontSize: '18px', fontFamily: 'Syne, Inter, sans-serif' }}>
+          <span style={{ color: '#e8e8f0', fontWeight: 700, fontSize: '28px', fontFamily: 'Syne, Inter, sans-serif' }}>
             SmartQueue
           </span>
         </div>
 
         {/* Nome da unidade */}
-        <div style={{ textAlign: 'center', flex: 1, padding: '0 24px' }}>
+        <div style={{ textAlign: 'center', flex: 1, padding: '0 32px' }}>
           <div style={{
-            fontSize: 'clamp(16px, 2.5vw, 28px)',
+            fontSize: '28px',
             fontWeight: 800,
             color: '#e8e8f0',
             fontFamily: 'Syne, Inter, sans-serif',
@@ -267,10 +267,10 @@ export default function Display() {
         {/* Relógio */}
         <div style={{
           fontFamily: 'monospace',
-          fontSize: 'clamp(22px, 2.8vw, 36px)',
+          fontSize: '48px',
           fontWeight: 700,
           color: '#00d4aa',
-          letterSpacing: '3px',
+          letterSpacing: '4px',
           flexShrink: 0,
         }}>
           {horario}
@@ -280,8 +280,8 @@ export default function Display() {
       {/* MAIN CONTENT */}
       <main style={{
         flex: 1, display: 'flex', flexDirection: 'column',
-        padding: '24px 32px 16px',
-        gap: '24px', position: 'relative', zIndex: 10,
+        padding: '40px 48px 24px',
+        gap: '40px', position: 'relative', zIndex: 10,
         overflow: 'hidden',
         minHeight: 0,
       }}>
@@ -289,14 +289,14 @@ export default function Display() {
         {/* EM ATENDIMENTO */}
         <section style={{ flex: '0 0 auto' }}>
           <div style={{
-            fontSize: '11px', fontWeight: 800, letterSpacing: '3px',
-            color: '#6b6b8a', textTransform: 'uppercase', marginBottom: '14px',
-            display: 'flex', alignItems: 'center', gap: '10px',
+            fontSize: '20px', fontWeight: 800, letterSpacing: '4px',
+            color: '#6b6b8a', textTransform: 'uppercase', marginBottom: '24px',
+            display: 'flex', alignItems: 'center', gap: '12px',
           }}>
             <div style={{
-              width: '8px', height: '8px', borderRadius: '50%',
+              width: '12px', height: '12px', borderRadius: '50%',
               background: '#00d4aa',
-              boxShadow: '0 0 8px #00d4aa',
+              boxShadow: '0 0 12px #00d4aa',
               animation: 'pulse-dot 2s infinite',
             }} />
             Em Atendimento
@@ -305,7 +305,7 @@ export default function Display() {
           {emAtendimento.length === 0 ? (
             <div style={{
               textAlign: 'center', color: '#6b6b8a',
-              fontSize: '18px', padding: '40px 0',
+              fontSize: '24px', padding: '60px 0',
               letterSpacing: '0.5px',
             }}>
               Aguardando chamada...
@@ -314,7 +314,7 @@ export default function Display() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: `repeat(${Math.min(emAtendimento.length, 4)}, 1fr)`,
-              gap: '16px',
+              gap: '24px',
             }}>
               {emAtendimento.slice(0, 4).map(item => (
                 <AtendimentoCard key={item.id} item={item} />
@@ -326,15 +326,15 @@ export default function Display() {
         {/* PRÓXIMOS NA FILA */}
         <section style={{ flex: '1 1 auto', minHeight: 0 }}>
           <div style={{
-            fontSize: '11px', fontWeight: 800, letterSpacing: '3px',
-            color: '#6b6b8a', textTransform: 'uppercase', marginBottom: '14px',
+            fontSize: '20px', fontWeight: 800, letterSpacing: '4px',
+            color: '#6b6b8a', textTransform: 'uppercase', marginBottom: '24px',
           }}>
             Próximos na Fila
           </div>
 
           {proximos.length === 0 ? (
             <div style={{
-              color: '#6b6b8a', fontSize: '16px',
+              color: '#6b6b8a', fontSize: '22px',
               padding: '20px 0', letterSpacing: '0.5px',
             }}>
               Nenhuma senha aguardando
@@ -342,7 +342,7 @@ export default function Display() {
           ) : (
             <div style={{
               display: 'flex', flexWrap: 'wrap',
-              gap: '12px', alignContent: 'flex-start',
+              gap: '20px', alignContent: 'flex-start',
             }}>
               {proximos.map(item => (
                 <ProximoBadge key={item.id} item={item} />
@@ -356,18 +356,18 @@ export default function Display() {
       <footer style={{
         position: 'relative', zIndex: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 32px',
+        padding: '24px 48px',
         borderTop: '1px solid rgba(124,106,255,0.12)',
         background: 'rgba(17,17,24,0.7)',
         backdropFilter: 'blur(8px)',
         flexShrink: 0,
       }}>
-        <span style={{ color: '#6b6b8a', fontSize: '14px' }}>
+        <span style={{ color: '#6b6b8a', fontSize: '22px' }}>
           <strong style={{ color: '#e8e8f0' }}>{totalAguardando}</strong>{' '}
           {totalAguardando === 1 ? 'pessoa aguardando' : 'pessoas aguardando'}
         </span>
         <span style={{
-          color: '#6b6b8a', fontSize: '14px',
+          color: '#6b6b8a', fontSize: '22px',
           fontStyle: 'italic',
           transition: 'opacity 0.5s',
         }}>
@@ -385,7 +385,7 @@ export default function Display() {
 
         @keyframes pulse-border {
           0%, 100% { box-shadow: 0 0 20px rgba(124,106,255,0.3); }
-          50% { box-shadow: 0 0 35px rgba(124,106,255,0.6); }
+          50% { box-shadow: 0 0 45px rgba(124,106,255,0.5); }
         }
 
         @keyframes fade-in {
@@ -403,17 +403,17 @@ function AtendimentoCard({ item }: { item: EmAtendimento }) {
   return (
     <div style={{
       background: '#13131f',
-      border: '2px solid #7c6aff',
-      borderRadius: '16px',
-      padding: '24px 20px',
+      border: '3px solid #7c6aff',
+      borderRadius: '20px',
+      padding: '40px 32px',
       textAlign: 'center',
       animation: 'pulse-border 3s ease-in-out infinite, fade-in 0.4s ease-out',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-      minWidth: 0,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+      minWidth: '300px',
     }}>
       {/* Número da senha */}
       <div style={{
-        fontSize: 'clamp(48px, 7vw, 80px)',
+        fontSize: '120px',
         fontWeight: 800,
         fontFamily: 'Syne, Inter, sans-serif',
         lineHeight: 1,
@@ -427,9 +427,9 @@ function AtendimentoCard({ item }: { item: EmAtendimento }) {
       {/* Nome do paciente */}
       <div style={{
         color: '#e8e8f0',
-        fontSize: 'clamp(14px, 1.5vw, 18px)',
+        fontSize: '32px',
         fontWeight: 600,
-        marginTop: '4px',
+        marginTop: '8px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
@@ -440,7 +440,7 @@ function AtendimentoCard({ item }: { item: EmAtendimento }) {
       {/* Tipo de serviço */}
       <div style={{
         color: '#6b6b8a',
-        fontSize: 'clamp(12px, 1.2vw, 14px)',
+        fontSize: '24px',
       }}>
         {item.tipo_servico}
       </div>
@@ -454,20 +454,21 @@ function ProximoBadge({ item }: { item: ProximoNaFila }) {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '6px',
-      padding: '10px 20px',
+      gap: '12px',
+      padding: '16px 24px',
       borderRadius: '12px',
-      border: `1.5px solid ${prioritario ? '#ff6b6b' : '#7c6aff'}`,
+      border: `2px solid ${prioritario ? '#ff6b6b' : '#7c6aff'}`,
       background: prioritario ? 'rgba(255,107,107,0.15)' : 'rgba(124,106,255,0.15)',
       color: prioritario ? '#ff6b6b' : '#7c6aff',
-      fontSize: 'clamp(18px, 2vw, 24px)',
+      fontSize: '36px',
       fontWeight: 700,
       fontFamily: 'Syne, Inter, sans-serif',
       letterSpacing: '1px',
       animation: 'fade-in 0.3s ease-out',
     }}>
-      {prioritario && <span style={{ fontSize: '18px' }}>⭐</span>}
+      {prioritario && <span style={{ fontSize: '28px' }}>⭐</span>}
       {item.numero_senha}
     </div>
   );
 }
+
