@@ -7,6 +7,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e?style=for-the-badge&logo=supabase)
 ![Tailwind](https://img.shields.io/badge/Tailwind-CSS-06b6d4?style=for-the-badge&logo=tailwindcss)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql)
 
 ---
 
@@ -25,6 +26,7 @@ O **SmartQueue** é uma aplicação web responsiva (mobile + desktop) que resolv
 - ✅ Acompanhamento da posição na fila em tempo real
 - ✅ Prioridade automática por lei federal
 - ✅ Painel administrativo completo com relatórios
+- ✅ Display para TV/monitor na recepção em tempo real
 
 ---
 
@@ -46,6 +48,7 @@ O **SmartQueue** é uma aplicação web responsiva (mobile + desktop) que resolv
 - 👥 Gestão de usuários (editar, ativar/desativar)
 - ➕ Cadastro de novos usuários pela recepção
 - 📅 Agendamento presencial direto pelo painel
+- 📺 Display para TV com fila em tempo real
 - 📈 Relatórios diários e mensais com gráficos
 - 📊 Exportação de dados em CSV
 - 🤖 Marcação automática de "Não compareceu" via pg_cron
@@ -84,26 +87,29 @@ O **SmartQueue** é uma aplicação web responsiva (mobile + desktop) que resolv
 | Row Level Security | Segurança por usuário |
 | Realtime | Fila ao vivo |
 | Storage | Avatares dos usuários |
-| Edge Functions | Lógica serverless |
+| Edge Functions | Lógica serverless (Deno) |
 | pg_cron | Jobs automáticos |
+| pg_net | Chamadas HTTP do banco |
+| RPC Functions | Operações atômicas na fila |
 
 ---
 
 ## 🏗️ Arquitetura
 
 ```
-smartqueue/
-├── frontend/                    # React + TypeScript
+smart-queue/
+├── frontend/                         # React + TypeScript
 │   ├── src/
 │   │   ├── pages/
 │   │   │   ├── Login.tsx
 │   │   │   ├── Cadastro.tsx
-│   │   │   ├── Dashboard.tsx    # Dashboard do usuário
-│   │   │   ├── Agendar.tsx      # Agendamento em 4 etapas
-│   │   │   ├── Fila.tsx         # Posição na fila
-│   │   │   ├── Perfil.tsx       # Perfil do usuário
-│   │   │   ├── Admin.tsx        # Painel administrativo
-│   │   │   └── Relatorios.tsx   # Relatórios gerenciais
+│   │   │   ├── Dashboard.tsx         # Dashboard do usuário
+│   │   │   ├── Agendar.tsx           # Agendamento em 4 etapas
+│   │   │   ├── Fila.tsx              # Posição na fila
+│   │   │   ├── Perfil.tsx            # Perfil do usuário
+│   │   │   ├── Admin.tsx             # Painel administrativo
+│   │   │   ├── Relatorios.tsx        # Relatórios gerenciais
+│   │   │   └── Display.tsx           # Display para TV/monitor
 │   │   ├── components/
 │   │   │   ├── AppLayout.tsx
 │   │   │   ├── Navigation.tsx
@@ -116,11 +122,18 @@ smartqueue/
 │   │   └── integrations/
 │   │       └── supabase/
 │   │           └── client.ts
-└── supabase/
-    └── functions/
-        ├── previsao-espera/        # Calcula tempo estimado
-        ├── notificar-fila/         # Envia notificações
-        └── criar-usuario-admin/    # Cadastro via admin
+└── supabase/                         # Backend Supabase
+    └── functions/                    # Edge Functions (Deno)
+        ├── _compartilhado/
+        │   └── supabase.ts           # Cliente e tipos compartilhados
+        ├── previsao-espera/
+        │   └── index.ts              # Calcula tempo estimado de espera
+        ├── notificar-fila/
+        │   └── index.ts              # Envia notificações de proximidade
+        ├── criar-usuario-admin/
+        │   └── index.ts              # Cadastro de usuários pelo admin
+        ├── automacoes.sql            # Triggers e cron jobs
+        └── README.md                 # Documentação das Edge Functions
 ```
 
 ---
@@ -150,6 +163,13 @@ smartqueue/
 - ✅ Registro no histórico ao finalizar atendimento
 - ✅ Job automático (00:01) marca `nao_compareceu`
 
+### Funções RPC (Operações Atômicas)
+| Função | Descrição |
+|---|---|
+| `chamar_proximo(agendamento_id)` | Registra `chamado_em` — paciente chamado no display |
+| `iniciar_atendimento(agendamento_id)` | Registra `atendimento_inicio` — atendimento começou |
+| `concluir_atendimento(agendamento_id)` | Registra `atendimento_fim` e calcula tempos automaticamente |
+
 ---
 
 ## ⚡ Edge Functions
@@ -171,12 +191,29 @@ POST /functions/v1/notificar-fila
 ```
 
 ### `criar-usuario-admin`
-Permite que recepcionistas cadastrem novos usuários pelo painel admin.
+Permite que recepcionistas cadastrem novos usuários pelo painel admin sem perder a sessão.
 
 ```
 POST /functions/v1/criar-usuario-admin
 { "nome_completo", "email", "senha", "cpf", "telefone" }
 ```
+
+---
+
+## 📺 Display para TV
+
+O SmartQueue possui uma página especial para exibir a fila em tempo real em TVs ou monitores da recepção.
+
+**Acesso:** `/display?unidade=ID_DA_UNIDADE`
+
+**Funcionalidades:**
+- Senhas em atendimento em destaque grande
+- Próximos na fila em badges coloridos
+- ⭐ Identificação visual de prioritários
+- Relógio em tempo real
+- Efeito sonoro ao chamar nova senha
+- Atualização automática via Supabase Realtime
+- Sem necessidade de login
 
 ---
 
@@ -220,7 +257,13 @@ supabase functions deploy notificar-fila
 supabase functions deploy criar-usuario-admin
 ```
 
-### 6. Inicie o servidor
+### 6. Configure as automações
+No SQL Editor do Supabase execute:
+```
+supabase/functions/automacoes.sql
+```
+
+### 7. Inicie o servidor
 ```bash
 cd frontend
 npm run dev
@@ -235,13 +278,13 @@ Acesse: `http://localhost:8080`
 | Perfil | Acesso |
 |---|---|
 | `usuario` | Dashboard, Agendar, Fila, Perfil |
-| `administrador` | Painel Admin, Relatórios, Perfil |
+| `administrador` | Painel Admin, Relatórios, Perfil, Display TV |
 
 Para tornar um usuário administrador:
 ```sql
 UPDATE perfis
 SET perfil = 'administrador'
-WHERE email = 'seu@email.com';
+WHERE nome_completo = 'NOME DO USUARIO';
 ```
 
 ---
@@ -254,6 +297,7 @@ WHERE email = 'seu@email.com';
 | Relatórios | Básicos | Avançados |
 | Dashboard | Simples | Completo |
 | Previsão de espera | ✅ | ✅ |
+| Display para TV | ✅ | ✅ |
 | Suporte | Comunidade | Prioritário |
 
 ---
@@ -262,12 +306,13 @@ WHERE email = 'seu@email.com';
 
 > Sistema com design dark mode moderno, responsivo para mobile e desktop.
 
-- **Login** — Tela dividida com identidade visual
+- **Login** — Tela dividida com identidade visual dark mode
 - **Dashboard** — Agendamento ativo com senha em destaque
 - **Agendamento** — Fluxo em 4 etapas com calendário
 - **Fila** — Posição em tempo real com barra de progresso
 - **Admin** — Painel completo com KPIs e fila ao vivo
 - **Relatórios** — Gráficos de pizza e barras com histórico
+- **Display TV** — Painel de chamada para recepção
 
 ---
 
