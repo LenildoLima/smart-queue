@@ -31,7 +31,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     const fetchAdminData = async () => {
       if (!user) return;
       
-      // Fetch Profile
       const { data: profileData } = await supabase
         .from('perfis')
         .select('nome_completo, url_avatar')
@@ -39,7 +38,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         .single();
       if (profileData) setPerfil(profileData);
 
-      // Fetch Unit Info via administradores_unidades
       const { data: adminUnidade } = await supabase
         .from('administradores_unidades')
         .select('unidade_id')
@@ -63,6 +61,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
     if (location.pathname === '/admin') return '// painel admin';
     if (location.pathname === '/relatorios') return '// relatórios e estatísticas';
     if (location.pathname === '/perfil') return '// perfil do administrador';
+    if (location.pathname === '/unidades') return '// gestão de unidades';
     return '// plataforma de atendimento';
   };
 
@@ -78,10 +77,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-[#e8e8f0] font-[Inter] relative">
+    <div className="min-h-screen w-full bg-[#0a0a0f] text-[#e8e8f0] font-[Inter] relative overflow-x-hidden">
       {/* Background Decor */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Grid Sutil */}
         <div style={{
           position: 'absolute',
           inset: 0,
@@ -91,18 +89,18 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           `,
           backgroundSize: '48px 48px',
         }} />
-
-        {/* Orbs */}
         <div className="absolute top-[-200px] left-[-100px] w-[600px] h-[600px] bg-[rgba(124,106,255,0.08)] rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-[-100px] w-[400px] h-[400px] bg-[rgba(0,212,170,0.06)] rounded-full blur-[120px]" />
       </div>
 
-      {/* Top Navigation Banner (80px) */}
-      <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="h-20 bg-[#111118] border-b border-[#2d2d45] shadow-[0_4px_20px_rgba(0,0,0,0.3)] relative z-10">
-          <div className="container h-full flex items-center justify-between px-4 md:px-8">
-            
-            {/* LADO ESQUERDO: Logo + Subtitle */}
+      {/* Header fixo - largura total */}
+      <header className="fixed top-0 left-0 right-0 w-full z-50">
+
+        {/* Barra superior */}
+        <div className="h-20 w-full bg-[#111118] border-b border-[#2d2d45] shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+          <div className="w-full h-full flex items-center justify-between px-6 md:px-10">
+
+            {/* ESQUERDA: Logo */}
             <div className="flex flex-col">
               <NavLink to="/admin" className="flex items-center hover:opacity-90 transition-opacity">
                 <SmartQueueLogo size="sm" />
@@ -112,20 +110,18 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
               </span>
             </div>
 
-            {/* CENTRO: Unidade (Hidden on Mobile) */}
+            {/* CENTRO: Endereço da unidade */}
             <div className="hidden lg:flex flex-col items-center text-center">
-              <h2 className="text-sm font-bold text-[#e8e8f0] flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00d4aa] animate-pulse" />
-                {unidade?.nome || 'Unidade Administrativa'}
-              </h2>
-              <p className="text-[11px] text-[#6b6b8a] mt-0.5">
-                {unidade ? `${unidade.endereco} - ${unidade.cidade}` : 'Localização não definida'}
+              <p className="text-[14px] font-medium text-[#a0a0b8]">
+                {unidade
+                  ? `${unidade.endereco} — ${unidade.cidade}`
+                  : 'Localização não definida'}
               </p>
             </div>
 
-            {/* LADO DIREITO: Desktop Menu + Profile */}
+            {/* DIREITA: Nav + Perfil */}
             <div className="hidden md:flex items-center gap-4">
-              <nav className="flex items-center gap-4 text-sm font-medium mr-4 border-r border-[#2d2d45] pr-4">
+              <nav className="flex items-center gap-1 text-sm font-medium mr-4 border-r border-[#2d2d45] pr-4">
                 {navItems.map((item, idx) => (
                   <div key={item.to} className="flex items-center">
                     {idx > 0 && <span className="text-[#2d2d45] mx-2">|</span>}
@@ -133,7 +129,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                       to={item.to}
                       className={({ isActive }) =>
                         cn(
-                          "transition-colors hover:text-[#7c6aff]",
+                          "transition-colors hover:text-[#7c6aff] px-2",
                           isActive ? "text-[#7c6aff]" : "text-[#6b6b8a]"
                         )
                       }
@@ -151,7 +147,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                     <p className="text-xs font-bold text-[#e8e8f0] leading-tight">
                       {perfil?.nome_completo || 'Administrador'}
                     </p>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="text-[10px] text-[#6b6b8a] hover:text-[#ff6b6b] transition-colors flex items-center gap-1 mt-0.5"
                     >
@@ -165,7 +161,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
               </div>
             </div>
 
-            {/* Mobile Menu Toggle & Avatar */}
+            {/* Mobile: hamburguer */}
             <div className="flex items-center gap-3 md:hidden">
               <NavLink to="/perfil">
                 <UserAvatar src={perfil?.url_avatar} name={perfil?.nome_completo || ''} size={32} />
@@ -180,9 +176,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </div>
 
-        {/* ABAIXO DO BANNER: Badge da Página Atual */}
-        <div className="bg-[#0a0a0f]/80 backdrop-blur-sm border-b border-[#2d2d45] h-10 relative z-0">
-          <div className="container h-full flex items-center px-4 md:px-8">
+        {/* Barra inferior - badge da página */}
+        <div className="w-full bg-[#0a0a0f]/80 backdrop-blur-sm border-b border-[#2d2d45] h-10">
+          <div className="w-full h-full flex items-center px-6 md:px-10">
             <span className="text-[10px] font-black uppercase tracking-[2px] text-[#7c6aff]/80 flex items-center gap-2">
               <ChevronRight size={10} className="text-[#6b6b8a]" />
               {getPageBadge()}
@@ -192,7 +188,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
 
         {/* Mobile Dropdown */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 right-0 bg-[#111118]/95 backdrop-blur-xl border-b border-[#2d2d45] py-6 px-4 flex flex-col gap-3 z-40 animate-in fade-in slide-in-from-top-6 duration-300">
+          <div className="md:hidden absolute top-20 left-0 right-0 w-full bg-[#111118]/95 backdrop-blur-xl border-b border-[#2d2d45] py-6 px-4 flex flex-col gap-3 z-40">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -201,9 +197,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                    isActive 
-                      ? "bg-gradient-to-r from-[#7c6aff]/20 to-[#00d4aa]/10 text-[#7c6aff] border border-[#7c6aff]/20" 
-                      : "text-[#6b6b8a] hover:bg-[#1e1e2e] active:scale-95"
+                    isActive
+                      ? "bg-gradient-to-r from-[#7c6aff]/20 to-[#00d4aa]/10 text-[#7c6aff] border border-[#7c6aff]/20"
+                      : "text-[#6b6b8a] hover:bg-[#1e1e2e]"
                   )
                 }
               >
@@ -212,14 +208,6 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
               </NavLink>
             ))}
             <div className="mt-4 pt-6 border-t border-[#2d2d45]">
-              <div className="lg:flex flex-col items-start px-4 mb-6">
-                <h2 className="text-sm font-bold text-[#e8e8f0]">
-                  {unidade?.nome || 'Unidade Administrativa'}
-                </h2>
-                <p className="text-[11px] text-[#6b6b8a] mt-0.5">
-                  {unidade ? `${unidade.endereco} - ${unidade.cidade}` : ''}
-                </p>
-              </div>
               <Button
                 variant="ghost"
                 onClick={handleLogout}
@@ -233,8 +221,8 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         )}
       </header>
 
-      {/* Content Area */}
-      <main className="relative z-10 pt-32 pb-20 md:pb-12 min-h-screen">
+      {/* Conteúdo — ocupa 100% da largura */}
+      <main className="relative z-10 w-full pt-[120px] pb-12 px-6 md:px-10">
         {children}
       </main>
     </div>

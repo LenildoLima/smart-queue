@@ -600,7 +600,7 @@ const Admin = () => {
 
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto space-y-6 animate-fade-in relative z-10">
+      <div className="w-full space-y-6 animate-fade-in relative z-10">
         {/* Date */}
         <div>
           <h1 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Painel Administrativo</h1>
