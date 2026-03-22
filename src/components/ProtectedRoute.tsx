@@ -18,6 +18,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // wrap authenticated pages with layout that includes navigation
-  return <AppLayout>{children}</AppLayout>;
+  // return children directly - pages will handle their own layout
+  return <>{children}</>;
 };

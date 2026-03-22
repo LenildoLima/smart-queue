@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -223,7 +224,8 @@ export default function Agendar() {
   // Renderização da Tela de Sucesso (Etapa 5)
   if (etapa === 5 && senhaGerada) {
     return (
-      <div className="min-h-screen bg-transparent pb-20 md:pb-0 font-[Inter]">
+      <AppLayout>
+        <div className="animate-fade-in pb-20 md:pb-0">
         <DashboardHeader isAdmin={perfil?.perfil === 'administrador'} />
         <main className="container max-w-2xl py-12 space-y-8 animate-fade-in text-center">
           <div className="mx-auto w-24 h-24 bg-[#00d4aa]/10 rounded-full flex items-center justify-center mb-6">
@@ -248,12 +250,14 @@ export default function Agendar() {
             </Button>
           </div>
         </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-transparent pb-20 md:pb-0 flex flex-col font-[Inter]">
+    <AppLayout>
+      <div className="animate-fade-in pb-20 md:pb-0 flex flex-col">
       <DashboardHeader isAdmin={perfil?.perfil === 'administrador'} />
 
       <main className="container max-w-3xl py-6 flex-1 flex flex-col animate-fade-in">
@@ -501,6 +505,7 @@ export default function Agendar() {
           )}
         </div>
       </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

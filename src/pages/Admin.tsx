@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserAvatar } from '@/components/UserAvatar';
+import { AdminLayout } from '@/components/AdminLayout';
 import { NotificationPanel } from '@/components/NotificationPanel';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -598,44 +599,8 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-transparent font-[Inter] text-[#e8e8f0]">
-      {/* Background Elements */}
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundImage: 'linear-gradient(rgba(124,106,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,255,0.03) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed', width: '600px', height: '600px', background: 'rgba(124,106,255,0.08)', borderRadius: '50%',
-        filter: 'blur(120px)', top: '-200px', left: '-100px', pointerEvents: 'none', zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed', width: '400px', height: '400px', background: 'rgba(0,212,170,0.06)', borderRadius: '50%',
-        filter: 'blur(100px)', bottom: '-100px', right: '-100px', pointerEvents: 'none', zIndex: 0
-      }} />
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-[#1e1e2e] bg-[#111118]/80 backdrop-blur-sm">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Badge className="bg-[#7c6aff]/10 text-[#7c6aff] border-[#7c6aff]/20 hover:bg-[#7c6aff]/20">
-              <Shield size={12} className="mr-1" />
-              Painel Admin
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationPanel />
-            <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair" className="text-[#e8e8f0] hover:bg-[#1e1e2e] hover:text-[#7c6aff]">
-              <LogOut size={18} />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container max-w-5xl py-6 space-y-6 animate-fade-in relative z-10">
+    <AdminLayout>
+      <div className="max-w-5xl mx-auto space-y-6 animate-fade-in relative z-10">
         {/* Date */}
         <div>
           <h1 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Painel Administrativo</h1>
@@ -1131,7 +1096,7 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
 
       {/* Modal Edição de Usuário */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -1229,7 +1194,7 @@ const Admin = () => {
           initialUser={preselectedUser}
         />
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

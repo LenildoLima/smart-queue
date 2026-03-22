@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { AppLayout } from '@/components/AppLayout';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -191,7 +192,8 @@ const Dashboard = () => {
   const status = agendamento ? statusConfig[agendamento.status] || statusConfig.agendado : null;
 
   return (
-    <div className="min-h-screen bg-transparent pb-20 md:pb-0 font-[Inter]">
+    <AppLayout>
+      <div className="animate-fade-in pb-20 md:pb-0">
       <DashboardHeader isAdmin={isAdmin} />
 
       <main className="container max-w-2xl py-6 space-y-5 animate-fade-in">
@@ -284,7 +286,8 @@ const Dashboard = () => {
         <AppointmentHistory />
       </main>
 
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 
