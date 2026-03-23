@@ -150,7 +150,7 @@ const Perfil = () => {
         cpf: cpf.replace(/\D/g, ''),
         telefone: telefone.replace(/\D/g, ''),
         data_nascimento: dataNascimento,
-        grupo_prioridade: grupoPrioridade,
+        grupo_prioridade: grupoPrioridade as any,
         url_avatar: avatarUrl,
       }).eq('id', user.id);
 
@@ -233,6 +233,7 @@ const Perfil = () => {
                     <UserAvatar src={null} name={nomeCompleto} size={120} />
                   )}
                 </div>
+                <p className="text-xs text-[#6b6b8a]">Força: <span className="text-[#e8e8f0] font-medium">{strength.label}</span></p>
               </div>
               <div className="flex gap-3">
                 <input ref={cameraRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileChange} />
@@ -343,6 +344,19 @@ const Perfil = () => {
     <AppLayout>
       <DashboardHeader isAdmin={false} />
       {content}
+    </AppLayout>
+  );
+
+  if (isAdmin) {
+    return <AdminLayout>{ProfileContent}</AdminLayout>;
+  }
+
+  return (
+    <AppLayout>
+      <div className="animate-fade-in font-[Inter]">
+        <DashboardHeader isAdmin={false} />
+        {ProfileContent}
+      </div>
     </AppLayout>
   );
 };
