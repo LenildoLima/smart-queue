@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardHeader } from '@/components/DashboardHeader';
+import { AppLayout } from '@/components/AppLayout';
+import { AdminLayout } from '@/components/AdminLayout';
 import { UserAvatar } from '@/components/UserAvatar';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -215,12 +217,10 @@ const Perfil = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-transparent font-[Inter]">
-      {/* Header */}
-      <DashboardHeader isAdmin={perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador'} />
+  const isAdminProfile = perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador';
 
-      <main className="container max-w-2xl py-6 space-y-6 animate-fade-in">
+  const content = (
+    <main className="container max-w-2xl py-6 space-y-6 animate-fade-in pl-4 pr-4 md:pl-0 md:pr-0">
         {/* Avatar Section */}
         <Card className="bg-[#13131f] border-[#2d2d45]">
           <CardContent className="p-6">
@@ -332,8 +332,18 @@ const Perfil = () => {
             </Button>
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </main>
+  );
+
+  if (isAdminProfile) {
+    return <AdminLayout>{content}</AdminLayout>;
+  }
+
+  return (
+    <AppLayout>
+      <DashboardHeader isAdmin={false} />
+      {content}
+    </AppLayout>
   );
 };
 

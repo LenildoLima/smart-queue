@@ -117,6 +117,8 @@ const isDataHoraPassada = (data: string, hora: string) => {
   return agora > dataHoraAgendamento
 }
 
+import { AdminLayout } from '@/components/AdminLayout';
+
 const Admin = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -598,44 +600,8 @@ const Admin = () => {
   });
 
   return (
-    <div className="min-h-screen bg-transparent font-[Inter] text-[#e8e8f0]">
-      {/* Background Elements */}
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundImage: 'linear-gradient(rgba(124,106,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(124,106,255,0.03) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed', width: '600px', height: '600px', background: 'rgba(124,106,255,0.08)', borderRadius: '50%',
-        filter: 'blur(120px)', top: '-200px', left: '-100px', pointerEvents: 'none', zIndex: 0
-      }} />
-      <div style={{
-        position: 'fixed', width: '400px', height: '400px', background: 'rgba(0,212,170,0.06)', borderRadius: '50%',
-        filter: 'blur(100px)', bottom: '-100px', right: '-100px', pointerEvents: 'none', zIndex: 0
-      }} />
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-[#1e1e2e] bg-[#111118]/80 backdrop-blur-sm">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Badge className="bg-[#7c6aff]/10 text-[#7c6aff] border-[#7c6aff]/20 hover:bg-[#7c6aff]/20">
-              <Shield size={12} className="mr-1" />
-              Painel Admin
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationPanel />
-            <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sair" className="text-[#e8e8f0] hover:bg-[#1e1e2e] hover:text-[#7c6aff]">
-              <LogOut size={18} />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container max-w-5xl py-6 space-y-6 animate-fade-in relative z-10">
+    <AdminLayout>
+      <div className="w-full py-6 space-y-6 animate-fade-in relative z-10">
         {/* Date */}
         <div>
           <h1 className="text-2xl font-bold text-[#e8e8f0] font-[Syne]">Painel Administrativo</h1>
@@ -779,8 +745,8 @@ const Admin = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full table-auto">
                 <TableHeader className="bg-[#111118]">
                   <TableRow className="border-[#1e1e2e] hover:bg-transparent">
                     <TableHead className="w-[120px] pl-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Data</TableHead>
@@ -1029,8 +995,8 @@ const Admin = () => {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full table-auto">
                 <TableHeader className="bg-[#111118]">
                   <TableRow className="border-[#1e1e2e] hover:bg-transparent">
                     <TableHead className="w-[250px] pl-6 text-[#6b6b8a] text-[11px] uppercase tracking-[1px] font-bold">Usuário</TableHead>
@@ -1131,7 +1097,7 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
 
       {/* Modal Edição de Usuário */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -1229,7 +1195,7 @@ const Admin = () => {
           initialUser={preselectedUser}
         />
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

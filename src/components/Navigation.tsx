@@ -41,14 +41,14 @@ export const Navigation = () => {
     navigate('/login');
   };
 
+  const isAdmin = perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador';
+
+  if (isAdmin) {
+    return null;
+  }
+
   // build the navigation items based on profile
-  const items = perfil?.perfil === 'administrador' || perfil?.perfil === 'super_administrador'
-    ? [
-        { to: '/admin', label: 'Admin', icon: Shield },
-        { to: '/relatorios', label: 'Relatórios', icon: BarChart2 },
-        { to: '/perfil', label: 'Perfil', icon: User }
-      ]
-    : baseItems;
+  const items = baseItems;
 
   return (
     <>

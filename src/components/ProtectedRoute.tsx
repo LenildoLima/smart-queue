@@ -3,7 +3,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { AppLayout } from '@/components/AppLayout';
 
-export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  skipLayout?: boolean;
+}
+
+export const ProtectedRoute = ({ children, skipLayout }: ProtectedRouteProps) => {
   const { session, loading } = useAuth();
 
   if (loading) {
@@ -16,6 +21,11 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!session) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Admin pages have their own AdminLayout, skip AppLayout wrapper
+  if (skipLayout) {
+    return <>{children}</>;
   }
 
   // wrap authenticated pages with layout that includes navigation

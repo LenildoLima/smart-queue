@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AppLayout } from '@/components/AppLayout';
-import { DashboardHeader } from '@/components/DashboardHeader';
+import { AdminLayout } from '@/components/AdminLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -258,18 +257,16 @@ export default function Relatorios() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <DashboardHeader isAdmin={isAdmin} />
+      <AdminLayout>
         <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
           <LoadingSpinner />
         </div>
-      </AppLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <AppLayout>
-      <DashboardHeader isAdmin={isAdmin} />
+    <AdminLayout>
       <main className="container max-w-6xl py-6 space-y-6 animate-fade-in min-h-[calc(100vh-4rem)]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -537,6 +534,6 @@ export default function Relatorios() {
           </div>
         )}
       </main>
-    </AppLayout>
+    </AdminLayout>
   );
 }

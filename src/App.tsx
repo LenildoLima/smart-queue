@@ -17,6 +17,7 @@ import Display from "./pages/Display";
 
 import Agendar from "./pages/Agendar";
 import Relatorios from "./pages/Relatorios";
+import Unidades from "./pages/Unidades";
 import Fila from "./pages/Fila";
 
 const queryClient = new QueryClient();
@@ -36,9 +37,10 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agendar" element={<ProtectedRoute><Agendar /></ProtectedRoute>} />
             <Route path="/fila" element={<ProtectedRoute><Fila /></ProtectedRoute>} />
-            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute skipLayout><Perfil /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute skipLayout><Admin /></ProtectedRoute>} />
+            <Route path="/unidades" element={<ProtectedRoute skipLayout><Unidades /></ProtectedRoute>} />
+            <Route path="/relatorios" element={<ProtectedRoute skipLayout><Relatorios /></ProtectedRoute>} />
             <Route path="/display" element={<Display />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

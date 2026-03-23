@@ -135,7 +135,9 @@ export default function Agendar() {
       // Calcular slots livres do dia baseados no funcionamento
       // Obter dia_semana (0=Domingo, 1=Segunda... pro date-fns)
       // Supabase pode usar 1=Segunda, precisamos bater corretamente (vamos supor 0-6 dom-sab)
-      const diaDaSemana = dataSel.getDay(); 
+      const [ano, mes, dia] = dataStr.split('-').map(Number);
+      const dataLocal = new Date(ano, mes - 1, dia);
+      const diaDaSemana = dataLocal.getDay(); 
       const funcionamentoDia = horariosFuncionamento.find(h => h.dia_semana === diaDaSemana && h.aberto);
 
       const isToday = format(dataSel, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -147,8 +149,9 @@ export default function Agendar() {
         const slots: string[] = [];
         let atual = parse(funcionamentoDia.abre_as, 'HH:mm:ss', new Date());
         const limite = parse(funcionamentoDia.fecha_as, 'HH:mm:ss', new Date());
+        const duracao = tipoSel.duracao_media_minutos || 15;
         
-        while (isBefore(atual, limite) || atual.getTime() === limite.getTime()) {
+        while (addMinutes(atual, duracao).getTime() <= limite.getTime()) {
           const slotStr = format(atual, 'HH:mm');
           
           // Se for hoje, só mostrar horários futuros (+30 min de margem opcional, usando agora normal)
@@ -156,13 +159,13 @@ export default function Agendar() {
             const slotTime = new Date();
             slotTime.setHours(atual.getHours(), atual.getMinutes(), 0);
             if (isBefore(slotTime, now)) {
-              atual = addMinutes(atual, tipoSel.duracao_media_minutos || 15);
+              atual = addMinutes(atual, duracao);
               continue;
             }
           }
           
           slots.push(slotStr);
-          atual = addMinutes(atual, tipoSel.duracao_media_minutos || 15);
+          atual = addMinutes(atual, duracao);
         }
         setHorariosDisponiveisDia(slots);
       }

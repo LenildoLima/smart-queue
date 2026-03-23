@@ -115,9 +115,10 @@ export function NovoAtendimentoModal({ isOpen, onClose, unidadeId, onSuccess, in
     setSlotStatusMsg('');
     setAvailableSlots([]);
 
-    const dt = parseISO(selectedDate);
-    // Sunday = 0
-    let diaDaSemana = dt.getDay() === 0 ? 7 : dt.getDay(); 
+    const [ano, mes, dia] = selectedDate.split('-').map(Number);
+    const dt = new Date(ano, mes - 1, dia);
+    // Sunday = 0, matches DB
+    let diaDaSemana = dt.getDay(); 
 
     // Find operating hours
     const { data: opData } = await supabase
